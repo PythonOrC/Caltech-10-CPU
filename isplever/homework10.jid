@@ -1,0 +1,5 @@
+. CPU ..\src\cpu.abl "c:\users\ethan\onedrive - california institute of technology\2024-25\2 - winter term\ee cs 10a\reference\homework 10\src\cpu.abl"
+ALUnit ALU ..\src\alu.abl "c:\users\ethan\onedrive - california institute of technology\2024-25\2 - winter term\ee cs 10a\reference\homework 10\src\alu.abl"
+DAUnit DAU ..\src\dau.abl "c:\users\ethan\onedrive - california institute of technology\2024-25\2 - winter term\ee cs 10a\reference\homework 10\src\dau.abl"
+PAUnit PAU ..\src\pau.abl "c:\users\ethan\onedrive - california institute of technology\2024-25\2 - winter term\ee cs 10a\reference\homework 10\src\pau.abl"
+CUnit CU ..\src\cu.abl "c:\users\ethan\onedrive - california institute of technology\2024-25\2 - winter term\ee cs 10a\reference\homework 10\src\cu.abl"

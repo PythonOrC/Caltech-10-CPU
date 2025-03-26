@@ -1,0 +1,139 @@
+MODULE DAU
+TITLE 'Data Memory Access Unit'
+
+" Description: This module is the Data Memory Access Unit for the Calech 10 CPU.
+"              It is responsible for performing the data memory access operations
+"              for the CPU. The module has a total of 24 inputs and 24 outputs.
+"
+" Inputs:       Accum7..Accum0    - 8 bits of accumulator input
+"               Offset7..Offset0  - 8 bits of offset input
+"               UpdateX           - active high update X-Register
+"               UpdateS           - active high update S-Register
+"               InputSel1         - Choose the input source for the address
+"               InputSel0         - 01: X-Register, 10: S-Register, 11: accumulator
+"               Inc               - active high increment signal
+"               Dec               - active high decrement signal
+"                                 - if neither is selected, the address holds
+"               PrePostAdd        - 1: pre-add, 0: post-add
+"               UseOffset         - active high enable offset signal
+"               Reset             - reset signal
+"               Clock             - clock signal
+"
+" Outputs:      DataAddr7..DataAddr0  - 8 bits of data address output
+"               XReg7..XReg0          - 8 bits of X-Register output
+"               SReg7..SReg0          - 8 bits of S-Register output
+
+" Revision History:
+" 03/07/25   Ethan Hu     implemented the Data Memory Access Unit
+
+
+
+DAU INTERFACE  (Accum7..Accum0, Offset7..Offset0,
+                       UpdateX,
+                       UpdateS,
+                       InputSel1,
+                       InputSel0,
+                       Inc,
+                       Dec,
+                       PrePostAdd,
+                       UseOffset,
+                       Reset, Clock
+                       -> DataAddr7..DataAddr0, XReg7..XReg0, SReg7..SReg0);
+
+
+" Pin/Signal Declarations
+" Inputs
+Accum7..Accum0        pin;           " 8 bits of accumulator input
+Offset7..Offset0      pin;           " 8 bits of offset input
+UpdateX               pin;           " update X-Register select signal
+UpdateS               pin;           " update S-Register select signal
+InputSel1..InputSel0  pin;           " Select Input to DAU: 
+                                     " 01: X-Reg, 10: S-Reg, 11: accum
+Inc                   pin;           " increment signal
+Dec                   pin;           " decrement signal
+PrePostAdd            pin;           " pre/post increment/decrement signal
+UseOffset             pin;           " use offset signal
+Reset                 pin;           " reset signal
+Clock                 pin;           " clock signal
+
+
+" Outputs
+DataAddr7..DataAddr0  pin;                        " 8 bits of data address output
+XReg7..XReg0          pin           ISTYPE 'REG'; " 8 bits of X-Register output
+SReg7..SReg0          pin           ISTYPE 'REG'; " 8 bits of S-Register output
+
+
+" Intermediate Signals
+SelectedAddr7..SelectedAddr0    node; " 8 bits of selected address
+IncDecCarryIn8..IncDecCarryIn1  node; " 8 bits of increment/decrement carry output
+IncDecOut7..IncDecOut0          node; " 8 bits of increment/decrement output
+AdderCarryIn8..AdderCarryIn1    node; " 8 bits of adder carry in
+AdderInOffset7..AdderInOffset0  node; " 8 bits of adder input (offset or 0)
+AdderInIncDec7..AdderInIncDec0  node; " 8 bits of adder input (increment/decrement output)
+IncDecIn7..IncDecIn0            node; " 8 bits of increment/decrement input (1, -1, or 0)
+
+" Buses
+AccumAddr     = [Accum7..Accum0];                    " accumulator or address 
+XReg          = [XReg7..XReg0];                      " 8 bits X-Register
+SReg          = [SReg7..SReg0];                      " 8 bits S-Register
+SelAddr       = [SelectedAddr7..SelectedAddr0];      " 8 bits selected address
+DataAddr      = [DataAddr7..DataAddr0];              " 8 bits data address
+Offset        = [Offset7..Offset0];                  " 8 bits offset input
+IncDecIn      = [IncDecIn7..IncDecIn0];              " 8 bits increment/decrement input (1, -1, or 0)
+IncDecCarryIn = [IncDecCarryIn8..IncDecCarryIn1, 0]; " 9 bits increment/decrement carry
+IncDecOut     = [IncDecOut7..IncDecOut0];            " 8 bits increment/decrement output
+AdderCarryIn  = [AdderCarryIn8..AdderCarryIn1, 0];   " 9 bits adder carry in
+AdderInOffset = [AdderInOffset7..AdderInOffset0];    " 8 bits adder input from Offset (offset or 0)
+AdderInIncDec = [AdderInIncDec7..AdderInIncDec0];    " 8 bits adder input from Pre-/Post- Inc/Dec
+
+" Constants
+POS_ONE = [0, 0, 0, 0, 0, 0, 0, 1];
+NEG_ONE = [1, 1, 1, 1, 1, 1, 1, 1];
+
+EQUATIONS
+
+" Connect Reset and Clock
+XReg.CLK = Clock;
+XReg.CLR = Reset;
+SReg.CLK = Clock;
+SReg.CLR = Reset;
+
+" Select the address, if neither X nor S is selected, the address is 0
+
+SelAddr = (!InputSel1 &  InputSel0 & XReg) #     " 01: X-Register
+          ( InputSel1 & !InputSel0 & SReg) #     " 10: S-Register
+          ( InputSel1 &  InputSel0 & AccumAddr); " 11: Accumulator
+                                                 " 00: 0
+
+" Increment/Decrement/Hold
+IncDecIn = ( Inc & !Dec & POS_ONE) # " Increment
+           (!Inc &  Dec & NEG_ONE);  " Decrement
+                                     " Hold i.e. 0
+
+" Update Increment/Decrement Carry (bit 0 is always 0)
+IncDecCarryIn[8..1] = (SelAddr & IncDecIn) # ((SelAddr $ IncDecIn) & IncDecCarryIn[7..0]);
+
+" Update Increment/Decrement Output
+IncDecOut = SelAddr $ IncDecIn $ IncDecCarryIn[7..0];
+
+" Update S/X Register
+XReg := ( UpdateX & IncDecOut) # " Update X Register
+        (!UpdateX & XReg);       " Hold X Register
+SReg := ( UpdateS & IncDecOut) # " Update S Register
+        (!UpdateS & SReg);       " Hold S Register
+
+" Choose to use offset (else 0)
+AdderInOffset = (UseOffset & Offset); " Use Offset
+                                      " Use 0
+
+" choose to use pre/post increment/decrement addr value
+AdderInIncDec = ( PrePostAdd & IncDecOut) # " Use Pre Inc/Dec value
+                (!PrePostAdd & SelAddr);    " Use Post Inc/Dec value
+
+" Update Adder Carry In (bit 0 is always 0)
+AdderCarryIn[8..1] = (AdderInOffset & AdderInIncDec) # ((AdderInOffset $ AdderInIncDec) & AdderCarryIn[7..0]);
+
+" Update Data Address
+DataAddr = AdderInOffset $ AdderInIncDec $ AdderCarryIn[7..0];
+
+END DAU

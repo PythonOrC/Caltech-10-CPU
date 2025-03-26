@@ -1,0 +1,16 @@
+Simulator. Version 1.4
+Copyright (c) 1998-2007 by Lattice Semiconductor Corporation.
+Initializing mapping data.
+Initializing mapping data successfully.
+ticksize 100 ps
+stepsize 100000 ps
+mode unit
+Loading netlist......
+Loading netlist successfully.
+run 122,800.0 ns
+Simulating to time 282002 ......
+Simulating to time 521011 ......
+Simulating to time 835001 ......
+Simulating to time 1156002 ......
+Operation RUN ends.
+quit

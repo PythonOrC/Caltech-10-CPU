@@ -1,0 +1,404 @@
+#$ TOOL ispLEVER Classic 2.1.00.02.49.20
+#$ DATE Thu Mar 20 13:47:17 2025
+#$ TITLE Arithmetic Logic Unit
+#$ MODULE alu
+#$ JEDECFILE alu
+#$ PINS 44 Data7 Data6 Data5 Data4 Data3 Data2 Data1 Data0 Hold F3 F2 F1 F0 LowSR MidSR \
+#  HighSR2 HighSR1 HighSR0 AddShift WithCarry AddSub zeroAcc PopF InvCarry SZUpdate \
+#  CVUpdate Reset Clock Accum7 Accum6 Accum5 Accum4 Accum3 Accum2 Accum1 Accum0 Flags7 Flags6 \
+#  Flags5 Flags4 Flags3 Flags2 Flags1 Flags0
+#$ NODES 53 Fout7 Fout6 Fout5 Fout4 Fout3 Fout2 Fout1 Fout0 CarryIn8 CarryIn7 CarryIn6 \
+#  CarryIn5 CarryIn4 CarryIn3 CarryIn2 CarryIn1 CarryIn0 AdderOut7 AdderOut6 AdderOut5 \
+#  AdderOut4 AdderOut3 AdderOut2 AdderOut1 AdderOut0 AdderInA7 AdderInA6 AdderInA5 \
+#  AdderInA4 AdderInA3 AdderInA2 AdderInA1 AdderInA0 ShiftRot7 ShiftRot6 ShiftRot5 \
+#  ShiftRot4 ShiftRot3 ShiftRot2 ShiftRot1 ShiftRot0 AccOut7 AccOut6 AccOut5 AccOut4 \
+#  AccOut3 AccOut2 AccOut1 AccOut0 CarrySR OverflowSR CarryAdder OverflowAdder
+#$ INTERFACE alu  44 AddShift'i'  AddSub'i'  CVUpdate'i'  Clock'i'  Data0'i'  Data1'i'  Data2'i'  Data3'i'  Data4'i'  Data5'i'  \
+#  Data6'i'  Data7'i'  F0'i'  F1'i'  F2'i'  F3'i'  HighSR0'i'  HighSR1'i'  HighSR2'i'  Hold'i'  InvCarry'i'  LowSR'i'  MidSR'i'  PopF'i'  Reset'i'  SZUpdate'i'  \
+#  WithCarry'i'  zeroAcc'i'  Accum0'o'  Accum1'o'  Accum2'o'  Accum3'o'  Accum4'o'  Accum5'o'  Accum6'o'  Accum7'o'  Flags0'o'  Flags1'o'  \
+#  Flags2'o'  Flags3'o'  Flags4'o'  Flags5'o'  Flags6'o'  Flags7'o' 
+.model alu
+.inputs Clock.BLIF Reset.BLIF F0.BLIF Accum7.BLIF Data7.BLIF F1.BLIF F2.BLIF \
+F3.BLIF Accum6.BLIF Data6.BLIF Accum5.BLIF Data5.BLIF Accum4.BLIF Data4.BLIF \
+Accum3.BLIF Data3.BLIF Accum2.BLIF Data2.BLIF Accum1.BLIF Data1.BLIF \
+Accum0.BLIF Data0.BLIF AddSub.BLIF WithCarry.BLIF Flags3.BLIF zeroAcc.BLIF \
+AdderInA7.BLIF Fout7.BLIF CarryIn7.BLIF AdderInA6.BLIF Fout6.BLIF \
+CarryIn6.BLIF AdderInA5.BLIF Fout5.BLIF CarryIn5.BLIF AdderInA4.BLIF \
+Fout4.BLIF CarryIn4.BLIF AdderInA3.BLIF Fout3.BLIF CarryIn3.BLIF \
+AdderInA2.BLIF Fout2.BLIF CarryIn2.BLIF AdderInA1.BLIF Fout1.BLIF \
+CarryIn1.BLIF AdderInA0.BLIF Fout0.BLIF CarryIn0.BLIF MidSR.BLIF Flags2.BLIF \
+HighSR2.BLIF HighSR1.BLIF HighSR0.BLIF LowSR.BLIF ShiftRot7.BLIF AddShift.BLIF \
+AdderOut7.BLIF ShiftRot6.BLIF AdderOut6.BLIF ShiftRot5.BLIF AdderOut5.BLIF \
+ShiftRot4.BLIF AdderOut4.BLIF ShiftRot3.BLIF AdderOut3.BLIF ShiftRot2.BLIF \
+AdderOut2.BLIF ShiftRot1.BLIF AdderOut1.BLIF ShiftRot0.BLIF AdderOut0.BLIF \
+Hold.BLIF AccOut7.BLIF AccOut6.BLIF AccOut5.BLIF AccOut4.BLIF AccOut3.BLIF \
+AccOut2.BLIF AccOut1.BLIF AccOut0.BLIF CarryIn8.BLIF PopF.BLIF CVUpdate.BLIF \
+InvCarry.BLIF CarryAdder.BLIF CarrySR.BLIF OverflowAdder.BLIF OverflowSR.BLIF \
+SZUpdate.BLIF Flags1.BLIF Flags0.BLIF Flags7.BLIF Flags6.BLIF Flags5.BLIF \
+Flags4.BLIF
+.outputs Fout7 Fout6 Fout5 Fout4 Fout3 Fout2 Fout1 Fout0 CarryIn8 CarryIn7 \
+CarryIn6 CarryIn5 CarryIn4 CarryIn3 CarryIn2 CarryIn1 CarryIn0 AdderOut7 \
+AdderOut6 AdderOut5 AdderOut4 AdderOut3 AdderOut2 AdderOut1 AdderOut0 \
+AdderInA7 AdderInA6 AdderInA5 AdderInA4 AdderInA3 AdderInA2 AdderInA1 \
+AdderInA0 ShiftRot7 ShiftRot6 ShiftRot5 ShiftRot4 ShiftRot3 ShiftRot2 \
+ShiftRot1 ShiftRot0 AccOut7 AccOut6 AccOut5 AccOut4 AccOut3 AccOut2 AccOut1 \
+AccOut0 CarrySR OverflowSR CarryAdder OverflowAdder Accum7.C Accum6.C Accum5.C \
+Accum4.C Accum3.C Accum2.C Accum1.C Accum0.C Accum7.CLR Accum6.CLR Accum5.CLR \
+Accum4.CLR Accum3.CLR Accum2.CLR Accum1.CLR Accum0.CLR Flags7.C Flags6.C \
+Flags5.C Flags4.C Flags3.C Flags2.C Flags1.C Flags0.C Flags7.CLR Flags6.CLR \
+Flags5.CLR Flags4.CLR Flags3.CLR Flags2.CLR Flags1.CLR Flags0.CLR Accum7.REG \
+Accum6.REG Accum5.REG Accum4.REG Accum3.REG Accum2.REG Accum1.REG Accum0.REG \
+Flags3.REG Flags2.REG Flags1.REG Flags0.REG Flags7.REG Flags6.REG Flags5.REG \
+Flags4.REG
+.names F0.BLIF Accum7.BLIF Data7.BLIF F1.BLIF F2.BLIF F3.BLIF Fout7
+100--- 1
+-011-- 1
+-10-1- 1
+-11--1 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum6.BLIF Data6.BLIF Fout6
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum5.BLIF Data5.BLIF Fout5
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum4.BLIF Data4.BLIF Fout4
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum3.BLIF Data3.BLIF Fout3
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum2.BLIF Data2.BLIF Fout2
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum1.BLIF Data1.BLIF Fout1
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names F0.BLIF F1.BLIF F2.BLIF F3.BLIF Accum0.BLIF Data0.BLIF Fout0
+---111 1
+-1--01 1
+--1-10 1
+1---00 1
+.names AdderInA7.BLIF Fout7.BLIF CarryIn7.BLIF CarryIn8
+11- 1
+011 1
+101 1
+.names AdderInA6.BLIF Fout6.BLIF CarryIn6.BLIF CarryIn7
+11- 1
+011 1
+101 1
+.names AdderInA5.BLIF Fout5.BLIF CarryIn5.BLIF CarryIn6
+11- 1
+011 1
+101 1
+.names AdderInA4.BLIF Fout4.BLIF CarryIn4.BLIF CarryIn5
+11- 1
+011 1
+101 1
+.names AdderInA3.BLIF Fout3.BLIF CarryIn3.BLIF CarryIn4
+11- 1
+011 1
+101 1
+.names AdderInA2.BLIF Fout2.BLIF CarryIn2.BLIF CarryIn3
+11- 1
+011 1
+101 1
+.names AdderInA1.BLIF Fout1.BLIF CarryIn1.BLIF CarryIn2
+11- 1
+011 1
+101 1
+.names AdderInA0.BLIF Fout0.BLIF CarryIn0.BLIF CarryIn1
+11- 1
+011 1
+101 1
+.names AddSub.BLIF WithCarry.BLIF Flags3.BLIF CarryIn0
+00- 1
+111 1
+010 1
+.names AdderInA7.BLIF Fout7.BLIF CarryIn7.BLIF AdderOut7
+111 1
+001 1
+010 1
+100 1
+.names AdderInA6.BLIF Fout6.BLIF CarryIn6.BLIF AdderOut6
+111 1
+001 1
+010 1
+100 1
+.names AdderInA5.BLIF Fout5.BLIF CarryIn5.BLIF AdderOut5
+111 1
+001 1
+010 1
+100 1
+.names AdderInA4.BLIF Fout4.BLIF CarryIn4.BLIF AdderOut4
+111 1
+001 1
+010 1
+100 1
+.names AdderInA3.BLIF Fout3.BLIF CarryIn3.BLIF AdderOut3
+111 1
+001 1
+010 1
+100 1
+.names AdderInA2.BLIF Fout2.BLIF CarryIn2.BLIF AdderOut2
+111 1
+001 1
+010 1
+100 1
+.names AdderInA1.BLIF Fout1.BLIF CarryIn1.BLIF AdderOut1
+111 1
+001 1
+010 1
+100 1
+.names AdderInA0.BLIF Fout0.BLIF CarryIn0.BLIF AdderOut0
+111 1
+001 1
+010 1
+100 1
+.names Accum7.BLIF zeroAcc.BLIF AdderInA7
+10 1
+.names Accum6.BLIF zeroAcc.BLIF AdderInA6
+10 1
+.names Accum5.BLIF zeroAcc.BLIF AdderInA5
+10 1
+.names Accum4.BLIF zeroAcc.BLIF AdderInA4
+10 1
+.names Accum3.BLIF zeroAcc.BLIF AdderInA3
+10 1
+.names Accum2.BLIF zeroAcc.BLIF AdderInA2
+10 1
+.names Accum1.BLIF zeroAcc.BLIF AdderInA1
+10 1
+.names Accum0.BLIF zeroAcc.BLIF AdderInA0
+10 1
+.names Accum7.BLIF Accum6.BLIF Accum0.BLIF Flags3.BLIF HighSR2.BLIF \
+HighSR1.BLIF HighSR0.BLIF ShiftRot7
+-1--1-- 1
+---1011 1
+1---001 1
+--1-010 1
+.names Accum7.BLIF Accum5.BLIF MidSR.BLIF ShiftRot6
+-11 1
+1-0 1
+.names Accum6.BLIF Accum4.BLIF MidSR.BLIF ShiftRot5
+-11 1
+1-0 1
+.names Accum5.BLIF Accum3.BLIF MidSR.BLIF ShiftRot4
+-11 1
+1-0 1
+.names Accum4.BLIF Accum2.BLIF MidSR.BLIF ShiftRot3
+-11 1
+1-0 1
+.names Accum3.BLIF Accum1.BLIF MidSR.BLIF ShiftRot2
+-11 1
+1-0 1
+.names Accum2.BLIF Accum0.BLIF MidSR.BLIF ShiftRot1
+-11 1
+1-0 1
+.names Accum7.BLIF Accum1.BLIF LowSR.BLIF ShiftRot0
+1-1 1
+-10 1
+.names ShiftRot7.BLIF AddShift.BLIF AdderOut7.BLIF AccOut7
+11- 1
+-01 1
+.names AddShift.BLIF ShiftRot6.BLIF AdderOut6.BLIF AccOut6
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot5.BLIF AdderOut5.BLIF AccOut5
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot4.BLIF AdderOut4.BLIF AccOut4
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot3.BLIF AdderOut3.BLIF AccOut3
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot2.BLIF AdderOut2.BLIF AccOut2
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot1.BLIF AdderOut1.BLIF AccOut1
+11- 1
+0-1 1
+.names AddShift.BLIF ShiftRot0.BLIF AdderOut0.BLIF AccOut0
+11- 1
+0-1 1
+.names Accum7.BLIF Accum0.BLIF MidSR.BLIF CarrySR
+1-1 1
+-10 1
+.names Accum7.BLIF Accum6.BLIF MidSR.BLIF Flags2.BLIF OverflowSR
+--01 1
+011- 1
+101- 1
+.names AddSub.BLIF CarryIn8.BLIF CarryAdder
+11 1
+00 1
+.names CarryIn7.BLIF CarryIn8.BLIF OverflowAdder
+01 1
+10 1
+.names Accum7.BLIF Hold.BLIF AccOut7.BLIF Accum7.REG
+11- 1
+-01 1
+.names Accum6.BLIF Hold.BLIF AccOut6.BLIF Accum6.REG
+11- 1
+-01 1
+.names Accum5.BLIF Hold.BLIF AccOut5.BLIF Accum5.REG
+11- 1
+-01 1
+.names Accum4.BLIF Hold.BLIF AccOut4.BLIF Accum4.REG
+11- 1
+-01 1
+.names Accum3.BLIF Hold.BLIF AccOut3.BLIF Accum3.REG
+11- 1
+-01 1
+.names Accum2.BLIF Hold.BLIF AccOut2.BLIF Accum2.REG
+11- 1
+-01 1
+.names Accum1.BLIF Hold.BLIF AccOut1.BLIF Accum1.REG
+11- 1
+-01 1
+.names Accum0.BLIF Hold.BLIF AccOut0.BLIF Accum0.REG
+11- 1
+-01 1
+.names Data3.BLIF Flags3.BLIF AddShift.BLIF PopF.BLIF CVUpdate.BLIF \
+InvCarry.BLIF CarryAdder.BLIF CarrySR.BLIF Flags3.REG
+1--1---- 1
+-1-00--- 1
+--101--1 1
+--00101- 1
+--00110- 1
+.names Data2.BLIF Flags2.BLIF AddShift.BLIF PopF.BLIF CVUpdate.BLIF \
+OverflowAdder.BLIF OverflowSR.BLIF Flags2.REG
+1--1--- 1
+-1-00-- 1
+--0011- 1
+--101-1 1
+.names Data1.BLIF AccOut7.BLIF PopF.BLIF SZUpdate.BLIF Flags1.BLIF Flags1.REG
+1-1-- 1
+-101- 1
+--001 1
+.names Data0.BLIF AccOut7.BLIF AccOut6.BLIF AccOut5.BLIF AccOut4.BLIF \
+AccOut3.BLIF AccOut2.BLIF AccOut1.BLIF AccOut0.BLIF PopF.BLIF SZUpdate.BLIF \
+Flags0.BLIF Flags0.REG
+1--------1-- 1
+---------001 1
+-0000000001- 1
+.names Data7.BLIF PopF.BLIF Flags7.BLIF Flags7.REG
+11- 1
+-01 1
+.names Data6.BLIF PopF.BLIF Flags6.BLIF Flags6.REG
+11- 1
+-01 1
+.names Data5.BLIF PopF.BLIF Flags5.BLIF Flags5.REG
+11- 1
+-01 1
+.names Data4.BLIF PopF.BLIF Flags4.BLIF Flags4.REG
+11- 1
+-01 1
+.names Clock.BLIF Accum7.C
+1 1
+0 0
+.names Clock.BLIF Accum6.C
+1 1
+0 0
+.names Clock.BLIF Accum5.C
+1 1
+0 0
+.names Clock.BLIF Accum4.C
+1 1
+0 0
+.names Clock.BLIF Accum3.C
+1 1
+0 0
+.names Clock.BLIF Accum2.C
+1 1
+0 0
+.names Clock.BLIF Accum1.C
+1 1
+0 0
+.names Clock.BLIF Accum0.C
+1 1
+0 0
+.names Reset.BLIF Accum7.CLR
+1 1
+0 0
+.names Reset.BLIF Accum6.CLR
+1 1
+0 0
+.names Reset.BLIF Accum5.CLR
+1 1
+0 0
+.names Reset.BLIF Accum4.CLR
+1 1
+0 0
+.names Reset.BLIF Accum3.CLR
+1 1
+0 0
+.names Reset.BLIF Accum2.CLR
+1 1
+0 0
+.names Reset.BLIF Accum1.CLR
+1 1
+0 0
+.names Reset.BLIF Accum0.CLR
+1 1
+0 0
+.names Clock.BLIF Flags7.C
+1 1
+0 0
+.names Clock.BLIF Flags6.C
+1 1
+0 0
+.names Clock.BLIF Flags5.C
+1 1
+0 0
+.names Clock.BLIF Flags4.C
+1 1
+0 0
+.names Clock.BLIF Flags3.C
+1 1
+0 0
+.names Clock.BLIF Flags2.C
+1 1
+0 0
+.names Clock.BLIF Flags1.C
+1 1
+0 0
+.names Clock.BLIF Flags0.C
+1 1
+0 0
+.names Reset.BLIF Flags7.CLR
+1 1
+0 0
+.names Reset.BLIF Flags6.CLR
+1 1
+0 0
+.names Reset.BLIF Flags5.CLR
+1 1
+0 0
+.names Reset.BLIF Flags4.CLR
+1 1
+0 0
+.names Reset.BLIF Flags3.CLR
+1 1
+0 0
+.names Reset.BLIF Flags2.CLR
+1 1
+0 0
+.names Reset.BLIF Flags1.CLR
+1 1
+0 0
+.names Reset.BLIF Flags0.CLR
+1 1
+0 0
+.end

@@ -1,0 +1,4485 @@
+MODULE CU
+TITLE 'Control Unit'
+
+" Description: This module is the Control Unit for the Caltech10 CPU.
+"              It is responsible for generating the control signals for the
+"              CPU. The module has a total of 26 inputs and 52 outputs. 16
+"              of the inputs are the instruction register bits, 8 are the
+"              flags from the ALU, and the rest is Clock and Reset signals.
+"              This is a submodule designed for Ethan's Caltech10 CPU module.
+"
+" Inputs:      ProgramDB15..ProgramDB0         - the 16-bit program data bus
+"              Flag7..Flag0                    - the 8-bit flags from the ALU
+"                                                    Flag7: Global Interrupt 
+"                                                           Enable/Disable
+"                                                    Flag6: Unused
+"                                                    Flag5: User bit used by 
+"                                                           STU and CLU instructions
+"                                                    Flag4: Unused
+"                                                    Flag3: Carry (carry out of bit 7)
+"                                                    Flag2: Signed Overflow (resulting 
+"                                                           sign bit is CUCUWRong)
+"                                                    Flag1: Sign (high bit of result)
+"                                                    Flag0: Zero (result is zero)
+"              Clock                           - system clock signal
+"              Reset                           - system reset signal
+"       
+" Outputs:     ALU control signals       
+"              ALUHold                         - hold the accumulator from updating
+"              ALUF3..ALUF0                    - 4 bits of F-Block inputs
+"              ALUHighSR2..ALUHighSR0          - 3 bits of shift/rotate high bits
+"              ALUMidSR                        - shift/rotate mid bit
+"              ALULowSR                        - shift/rotate low bit
+"              ALUAddShift                     - 1: shift/rotate, 0: adder
+"              ALUWithCarry                    - 1: use carry flag, 0: without carry flag
+"              ALUAddSub                       - 1: add, 0: sub
+"              ALUZeroAcc                      - 1: use zero, 0: use accumulator
+"              ALUPopF                         - 1: load flag from data
+"                                                0: update flag with logic
+"              ALUInvCarry                     - active high invert the carry signal
+"              ALUSZUpdate                     - active high update sign/zero flag
+"              ALUCVUpdate                     - active high update carry/overflow
+"       
+"              DAU control signals       
+"              DAUUpdateX                      - active high X-Register select signal
+"              DAUUpdateS                      - active high S-Register select signal
+"              DAUInputSel1                    - 2 bits of DAU input select signals
+"              DAUInputSel0                      01: X-Reg, 10: S-Reg, 11: accum       
+"              DAUPrePostAdd                   - 1: pre-add, 0: post-add
+"              DAUUseOffset                    - active high enable offset signal
+"              DAUInc                          - active high increment signal
+"              DAUDec                          - active high decrement signal
+"       
+"              PAU control signals       
+"              PAULoad                         - active high load the PAU
+"              PAUSel2..PAUSel0                - 3 bits of PAU select signals
+"       
+"              Misc control signals       
+"              CUPAUOffsetSrc                  - PAU Offset Source:
+"                                                0: instruction (immediate addr)
+"                                                1: DataDB (absolute addr)
+"     
+"              CUDataDBSel1..CUDataDBSel0      - 2 bits of DataDB select signals
+"                                                    00: Accumulator
+"                                                    01: Flags
+"                                                    10: PC Low
+"                                                    11: PC High
+"     
+"              CUALUInDataSel1..CUALUInDataSel0 - 2 bits of ALU data input select signals
+"
+"              CUWR                             - active high write data to DataDB
+"              CUIO                             - active high accessing memory (0) or I/O (1)
+"              CURD                             - active high read data from DataDB
+"        
+"              IR15..IR0                        - 16 bits of instruction register
+"
+" Revision History:
+" 03/16/25   Ethan Hu     implemented the Control Unit
+" 03/17/25   Ethan Hu     Debugged the Control Unit
+
+
+
+
+CU INTERFACE  (ProgramDB15..ProgramDB0,
+            Flag7..Flag0, Reset, Clock
+                          -> 
+    " ALU control signals
+            ALUHold        ,
+            ALUF3          ,
+            ALUF2          ,
+            ALUF1          ,
+            ALUF0          ,
+            ALUHighSR2     ,
+            ALUHighSR1     ,
+            ALUHighSR0     ,
+            ALUMidSR       ,
+            ALULowSR       ,
+            ALUAddShift    ,
+            ALUWithCarry   ,
+            ALUAddSub      ,
+            ALUZeroAcc     ,
+            ALUPopF        ,
+            ALUInvCarry    ,
+            ALUSZUpdate    ,
+            ALUCVUpdate    ,
+    " DAU control signals  
+            DAUUpdateX     ,
+            DAUUpdateS     ,
+            DAUInputSel1   ,
+            DAUInputSel0   ,
+            DAUPrePostAdd  ,
+            DAUUseOffset   ,
+            DAUInc         ,
+            DAUDec         ,
+    " PAU control signals  
+            PAULoad        ,
+            PAUSel2        ,
+            PAUSel1        ,
+            PAUSel0        ,
+    " PAU offset Source - 0: instruction (immediate addr), 1: DataDB (absolute addr)
+            CUPAUOffsetSrc,
+
+    " DataDB Control Signals
+            CUDataDBSel1   ,
+            CUDataDBSel0   ,
+ 
+    " ALU Data Input Control Signals
+        " 00: Data Data Bus
+        " 01: X Register
+        " 10: S Register
+        " 11: Immediate (ProgramAB)
+            CUALUInDataSel1,
+            CUALUInDataSel0,
+
+    " Control Control signals
+            CUWR           , " Write Data Data Bus
+            CUIO           ,
+            CURD           , " Read  Data Data Bus
+
+    " Instruction Register
+            IR15..IR0,debug);
+
+" Pin/Signal Declarations
+" Inputs
+ProgramDB15..ProgramDB0       pin;                     " program data bus
+Flag7..Flag0                  pin;                     " flags output from ALU
+Reset                         pin;                     " system reset
+Clock                         pin;                     " system clock
+debug                         pin;                     " debug signal
+" Outputs
+" PAU control signals
+PAULoad                       pin;                     " load the PAU
+PAUSel2                       pin;                     " PAU select 2
+PAUSel1                       pin;                     " PAU select 1
+PAUSel0                       pin;                     " PAU select 0
+
+" DAU control signals
+DAUUpdateX                    pin;                     " X-Register select signal
+DAUUpdateS                    pin;                     " S-Register select signal
+DAUInputSel1                  pin;                     " Select DAU Input
+DAUInputSel0                  pin;                     " 01: X-Reg, 10: S-Reg, 11: accum
+DAUPrePostAdd                 pin;                     " pre/post increment/decrement signal
+DAUUseOffset                  pin;                     " use offset signal
+DAUInc                        pin;                     " increment signal
+DAUDec                        pin;                     " decrement signal
+
+"ALU control signals
+ALUHold                       pin;                     " hold the accumulator from updating
+ALUF3                         pin;                     " 4 bits of F-Block inputs
+ALUF2                         pin;                     
+ALUF1                         pin;                     
+ALUF0                         pin;                     
+ALUHighSR2                    pin;                     " 3 bits of shift/rotate high bits
+ALUHighSR1                    pin;                     " 000 0    ,  001 MSB (self),  010 LSB    
+ALUHighSR0                    pin;                     " 011 Carry,  1XX Bit above 
+ALUMidSR                      pin;                     " 1: Bit below     0: Bit above
+ALULowSR                      pin;                     " 1 MSB            0 Bit above
+ALUAddShift                   pin;                     " 1: shift/rotate  0: adder
+ALUWithCarry                  pin;                     " 1: use carry flag, 0: without carry flag
+ALUAddSub                     pin;                     " 1: add, 0: sub
+ALUZeroAcc                    pin;                     " 1: use zero, 0: use accumulator
+ALUPopF                       pin;                     " 1: load flag from data, 0: update flag with logic
+ALUInvCarry                   pin;                     " active high invert the carry signal
+ALUSZUpdate                   pin;                     " active high update sign/zero flag
+ALUCVUpdate                   pin;                     " active high update carry/overflow
+
+" Misc control signals
+CURD                          pin;                     " active high read  Data Data Bus
+CUWR                          pin;                     " active high write Data Data Bus
+CUIO                          pin;                     " accessing memory (0) or I/O (1)
+CUDataDBSel1                  pin;                     " Data Data Bus select signals
+CUDataDBSel0                  pin;                     " 00: Accumulator, 01: Flags, 
+                                                       " 10: PC Low,      11: PC High
+CUALUInDataSel1               pin;                     " ALU data input select signals
+CUALUInDataSel0               pin;                     " 00: Data Data Bus, 01: X Register
+                                                       " 10: S Register,    11: Immediate (ProgramAB)
+CUPAUOffsetSrc                pin;                     " PAU Offset Source: 
+                                                       " 0: instruction (immediate addr)
+                                                       " 1: DataDB (absolute addr)
+" Instruction Register
+IR15..IR0                     pin   ISTYPE 'REG KEEP'; " instruction register
+
+" Finite State Machine Signals
+StateBit2..StateBit0          pin   ISTYPE 'REG KEEP'; " 3-bit state register
+
+" Intermediate Signals
+HoldIR                      node; " hold the instruction register
+FlagI                       node; " Global Interrupt Enable/Disable
+FlagU                       node; " User bit used by STU and CLU instructions
+FlagC                       node; " Carry (carry out of bit 7)
+FlagV                       node; " Signed Overflow (resulting sign bit is CUCUWRong)
+FlagS                       node; " Sign (high bit of result)
+FlagZ                       node; " Zero (result is zero)
+
+" Constants 
+" the name is in the format of: CPU Instructions Opcode_Operands
+" where in operands, mX/S : -X/S , 
+"                     X/Sm:  X/S-, 
+"                    pX/S : +X/S ,
+"                     X/Sp:  X/S+, 
+"                       k : immediate value
+"                       o : offset
+"                       r : signed relative offset
+"                       a : accumulator
+"                       X : X register
+"                       S : S register
+"                       m : absolute memory address
+
+" Instructions
+ADC_m  = [0,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADC_Xo = [0,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADC_So = [0,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADCI_k = [0,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADD_m  = [0,  1 ,  1 ,  0 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADD_Xo = [0,  1 ,  1 ,  0 ,  1 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADD_So = [0,  1 ,  1 ,  0 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ADDI_k = [0,  1 ,  1 ,  0 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+AND_m  = [0,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+AND_Xo = [0,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+AND_So = [0,  1 ,  0 ,  0 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ANDI_k = [0,  1 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+CMP_m  = [0,  0 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+CMP_Xo = [0,  0 ,  1 ,  1 ,  0 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+CMP_So = [0,  0 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+CMPI_k = [0,  0 ,  1 ,  1 ,  0 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+DEC    = [0,  1 ,  1 ,  1 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+INC    = [0,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LSL    = [0,  1 ,  0 ,  1 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+NOT    = [0,  0 ,  1 ,  0 ,  1 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+OR_m   = [0,  1 ,  1 ,  1 ,  0 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+OR_Xo  = [0,  1 ,  1 ,  1 ,  0 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+OR_So  = [0,  1 ,  1 ,  1 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ORI_k  = [0,  1 ,  1 ,  1 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+RLC    = [0,  1 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SBB_m  = [0,  0 ,  0 ,  1 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SBB_Xo = [0,  0 ,  0 ,  1 ,  1 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SBB_So = [0,  0 ,  0 ,  1 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SBBI_k = [0,  0 ,  0 ,  1 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SUB_m  = [0,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SUB_Xo = [0,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SUB_So = [0,  0 ,  0 ,  1 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+SUB_k  = [0,  0 ,  0 ,  1 ,  0 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+TST_m  = [0,  1 ,  0 ,  0 ,  1 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+TST_Xo = [0,  1 ,  0 ,  0 ,  1 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+TST_So = [0,  1 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+TSTI_k = [0,  1 ,  0 ,  0 ,  1 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+XOR_m  = [0,  0 ,  1 ,  1 ,  0 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+XOR_Xo = [0,  0 ,  1 ,  1 ,  0 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+XOR_So = [0,  0 ,  1 ,  1 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+XORI_k = [0,  0 ,  1 ,  1 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LDI_k  = [1,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LDD_m  = [1,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_pSo = [1,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_pXo = [1,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_mSo = [1,  0 ,  0 ,  0 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_mXo = [1,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_Spo = [1,  0 ,  0 ,  1 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_So  = [1,  0 ,  0 ,  1 ,  0 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_Xpo = [1,  0 ,  0 ,  1 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_Xo  = [1,  0 ,  0 ,  1 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_Smo = [1,  0 ,  0 ,  1 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+LD_Xmo = [1,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+STD_m  = [1,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_pSo = [1,  0 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_pXo = [1,  0 ,  1 ,  0 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_mSo = [1,  0 ,  1 ,  0 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_mXo = [1,  0 ,  1 ,  0 ,  1 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_Spo = [1,  0 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_So  = [1,  0 ,  1 ,  1 ,  0 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_Xpo = [1,  0 ,  1 ,  1 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_Xo  = [1,  0 ,  1 ,  1 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_Xmo = [1,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ST_Smo = [1,  0 ,  1 ,  1 ,  1 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JMP_a  = [1,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X.];
+JA_r   = [1,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JAE_r  = [1,  0 ,  0 ,  0 ,  1 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JB_r   = [1,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JBE_r  = [1,  0 ,  0 ,  0 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JE_r   = [1,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JG_r   = [1,  0 ,  1 ,  0 ,  1 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JGE_r  = [1,  0 ,  1 ,  1 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JL_r   = [1,  0 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JLE_r  = [1,  0 ,  1 ,  0 ,  1 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JNE_r  = [1,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JNS_r  = [1,  0 ,  0 ,  1 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JNV_r  = [1,  0 ,  1 ,  0 ,  1 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JS_r   = [1,  0 ,  0 ,  1 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JV_r   = [1,  0 ,  1 ,  0 ,  1 ,  0 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+CALL_a = [1,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X., .X.];
+RTS    = [0,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+POPF   = [0,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+PUSHF  = [0,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+NOP    = [0,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+
+" Bonus Instructions
+" Arithmetic Negation Instruction (25 points)
+NEG    = [0,  0 ,  1 ,  0 ,  0 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+
+" Shift and Rotate Instructions (40 points)
+ASR    = [0,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ];
+LSR    = [0,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+ROL    = [0,  1 ,  0 ,  1 ,  0 ,  0 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+ROR    = [0,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ,  0 ];
+RRC    = [0,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ];
+
+" Input/Output Instructions (20 points)
+IN_p   = [1,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+OUT_p  = [1,  0 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+
+" Index Register Instructions (30 points)
+TAX    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+TXA    = [0,  1 ,  1 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ];
+INX    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+DEX    = [0,  0 ,  0 ,  0 ,  1 ,  1 ,  0 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+TAS    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  1 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ];
+TSA    = [0,  1 ,  1 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+INS    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+DES    = [0,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ];
+
+" Flag Instructions (30 points)
+STI    = [0,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  1 ];
+CLI    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  0 ,  1 ,  1 ,  0 ,  1 ,  0 ,  0 ,  1 ];
+STU    = [0,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  1 ,  0 ];
+CLU    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 ,  1 ,  0 ];
+STC    = [0,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  0 ,  0 ];
+CLC    = [0,  0 ,  0 ,  0 ,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 ,  1 ,  0 ,  0 ];
+JNU_r  = [1,  0 ,  1 ,  1 ,  1 ,  1 ,  0 ,  0 , .X., .X., .X., .X., .X., .X., .X., .X.];
+JU_r   = [1,  0 ,  1 ,  1 ,  1 ,  1 ,  1 ,  1 , .X., .X., .X., .X., .X., .X., .X., .X.];
+
+" Bus Declarations
+ProgramDB = [ProgramDB15..ProgramDB0];  " Program Data Bus (input)
+IR        = [IR15..IR0];                " Instruction Register (output)
+StateBits = [StateBit2..StateBit0];     " State Bits (internal signal)
+
+" State Declarations
+OneClock = [0, 0, 0];
+Call1    = [0, 0, 1];
+Call2    = [0, 1, 0];
+Call3    = [0, 1, 1];
+RTS1     = [1, 0, 0];
+RTS2     = [1, 0, 1];
+
+
+EQUATIONS
+
+" Flag Assignments for Readability
+FlagI = Flag7;
+FlagU = Flag5;
+FlagC = Flag3;
+FlagV = Flag2;
+FlagS = Flag1;
+FlagZ = Flag0;
+
+IR.CLK = Clock;
+StateBits.CLK = Clock;
+StateBits.CLR = Reset;
+
+CUPAUOffsetSrc = (IR == JMP_a ) # " 1: absolute address 
+                 (IR == CALL_a) # " 0: immediate address
+                 (IR == RTS   );   
+
+" active high hold IR for multi-clock instructions (RTS, CALL)
+HoldIR = ((StateBits == OneClock) & (
+                (IR == CALL_a) # 
+                (IR == RTS))) # 
+          (StateBits == Call1) #                                                  
+          (StateBits == Call2) # 
+          (StateBits == RTS1); 
+
+" Hold IR for multi-clock instructions
+IR := ( HoldIR & IR) #      
+      (!HoldIR & ProgramDB);
+
+" WHEN THEN statements for each instruction
+
+" OpCode: TAX
+WHEN (IR == TAX) THEN {
+    " PAU: Increment
+    " DAU: Input Acc into X
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: TXA
+WHEN (IR == TXA) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Load into Acc
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 1;
+}
+
+" OpCode INX
+WHEN (IR == INX) THEN {
+    " PAU: Increment
+    " DAU: Store X+1 into X
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode DEX
+WHEN (IR == DEX) THEN {
+    " PAU: Increment
+    " DAU: Store X-1 into X
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: TAS
+WHEN (IR == TAS) THEN {
+    " PAU: Increment
+    " DAU: Input Acc into S
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: TSA
+WHEN (IR == TSA) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Load into Acc
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode INS
+WHEN (IR == INS) THEN {
+    " PAU: Increment
+    " DAU: Store S+1 into S
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode DES
+WHEN (IR == DES) THEN {
+    " PAU: Increment
+    " DAU: Store S-1 into S
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+
+" OpCode: IN | Operands: p
+WHEN (IR == IN_p) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Load into Acc
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 1;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: OUT | Operands: p
+WHEN (IR == OUT_p) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Output Acc
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 1;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+
+
+" OpCode: ROL
+WHEN (IR == ROL) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Shift Left
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 1;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 1;
+    ALULowSR = 1;
+    ALUAddShift = 1;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+
+" OpCode: ASR
+WHEN (IR == ASR) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Arithmetic Shift Right
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 1;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 1;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: LSR
+WHEN (IR == LSR) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Logical Shift Right
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 1;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: ROR 
+WHEN (IR == ROR) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Rotate Right
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 1;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 1;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: RRC
+WHEN (IR == RRC) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Rotate Right through Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 1;
+    ALUHighSR0 = 1;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 1;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+
+
+" OpCode: NEG
+WHEN (IR == NEG) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: 0-Accum
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: JA JAE JB JBE JE JG JGE JL JLE JNE JNS JNV JS JV | Operands: r
+WHEN (((IR == JA_r ) & (!FlagC & !FlagZ)          ) # " branch if above
+      ((IR == JAE_r) & (!FlagC)                   ) # " branch if above or equal
+      ((IR == JB_r ) & ( FlagC)                   ) # " branch if below
+      ((IR == JBE_r) & ( FlagC #  FlagZ)          ) # " branch if below or equal
+      ((IR == JE_r ) & ( FlagZ)                   ) # " branch if equal
+      ((IR == JG_r ) & ((FlagS == FlagV) & !FlagZ)) # " branch if greater
+      ((IR == JGE_r) & ( FlagS == FlagV)          ) # " brnach if greater or equal
+      ((IR == JL_r ) & ( FlagS != FlagV)          ) # " branch if less
+      ((IR == JLE_r) & ( FlagS != FlagV #  FlagZ) ) # " branch if less or equal
+      ((IR == JNE_r) & (!FlagZ)                   ) # " branch if not equal
+      ((IR == JNS_r) & (!FlagS)                   ) # " branch if not signed
+      ((IR == JNU_r) & (!FlagU)                   ) # " branch if not user flag
+      ((IR == JNV_r) & (!FlagV)                   ) # " branch if not overflow
+      ((IR == JS_r ) & ( FlagS)                   ) # " branch if signed
+      ((IR == JU_r ) & ( FlagU)                   ) # " branch if user flag
+      ((IR == JV_r ) & ( FlagV)                   )   " branch if overflow
+     ) THEN {
+    " PAU: Jump
+    " DAU: Inactive
+    " ALU: Hold
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 1;
+    PAUSel0 = 0;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" When Conditional Jumps, but condition is not met (NOP)
+WHEN (((IR == JA_r ) & !(!FlagC & !FlagZ)          ) # 
+      ((IR == JAE_r) & !(!FlagC)                   ) # 
+      ((IR == JB_r ) & !( FlagC)                   ) # 
+      ((IR == JBE_r) & !( FlagC #  FlagZ)          ) # 
+      ((IR == JE_r ) & !( FlagZ)                   ) # 
+      ((IR == JG_r ) & !((FlagS == FlagV) & !FlagZ)) # 
+      ((IR == JGE_r) & !( FlagS == FlagV)          ) #
+      ((IR == JL_r ) & !( FlagS != FlagV)          ) # 
+      ((IR == JLE_r) & !( FlagS != FlagV #  FlagZ) ) # 
+      ((IR == JNE_r) & !(!FlagZ)                   ) # 
+      ((IR == JNS_r) & !(!FlagS)                   ) # 
+      ((IR == JNU_r) & !(!FlagU)                   ) # 
+      ((IR == JNV_r) & !(!FlagV)                   ) # 
+      ((IR == JS_r ) & !( FlagS)                   ) # 
+      ((IR == JU_r ) & !( FlagU)                   ) # 
+      ((IR == JV_r ) & !( FlagV)                   )
+     ) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Hold    
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: ADC | Operands: m
+WHEN (IR == ADC_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: Add with Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADC | Operands: X, o
+WHEN (IR == ADC_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Add with Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADC | Operands: S, o
+WHEN (IR == ADC_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: Add with Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADCI | Operands: k
+WHEN (IR == ADCI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Add with Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: ADD | Operands: m
+WHEN (IR == ADD_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: Add
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADD | Operands: X, o
+WHEN (IR == ADD_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Add
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADD | Operands: S, o
+WHEN (IR == ADD_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: Add
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ADDI | Operands: k
+WHEN (IR == ADDI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Add
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: AND | Operands: m
+WHEN (IR == AND_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: AND
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: AND | Operands: X, o
+WHEN (IR == AND_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: AND
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: AND | Operands: S, o
+WHEN (IR == AND_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: AND
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ANDI | Operands: k
+WHEN (IR == ANDI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: AND
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: CMP | Operands: m
+WHEN (IR == CMP_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: CMP
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: CMP | Operands: X,o
+WHEN (IR == CMP_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: CMP
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: CMP | Operands: S,o
+WHEN (IR == CMP_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: CMP
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: CMPI | Operands: k
+WHEN (IR == CMPI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: CMP
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: DEC
+WHEN (IR == DEC) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Decrement
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 1;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: INC
+WHEN (IR == INC) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Increment
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 1;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+
+}
+" OpCode: LSL
+WHEN (IR == LSL) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Logic Shift Left
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: NOT
+WHEN (IR == NOT) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: NOT
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: OR | Operands: m
+WHEN (IR == OR_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: OR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: OR | Operands: X, o
+WHEN (IR == OR_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: OR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: OR | Operands: S, o
+WHEN (IR == OR_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: OR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: ORI | Operands: k
+WHEN (IR == ORI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: OR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+
+" OpCode: RLC
+WHEN (IR == RLC) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Rotate Left through Carry
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 1;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: SBB | Operands: m
+WHEN (IR == SBB_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: Subtract with Borrow
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SBB | Operands: X,o
+WHEN (IR == SBB_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Subtract with Borrow
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SBB | Operands: S,o
+WHEN (IR == SBB_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: Subtract with Borrow
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SBBI | Operands: k
+WHEN (IR == SBBI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Subtract with Borrow
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 1;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: SUB | Operands: m
+WHEN (IR == SUB_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: Subtract
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SUB | Operands: X,o
+WHEN (IR == SUB_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Subtract
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SUB | Operands: S,o
+WHEN (IR == SUB_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: Subtract
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: SUB | Operands: k
+WHEN (IR == SUB_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Subtract
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 1;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: TST | Operands: m
+WHEN (IR == TST_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: TST
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: TST | Operands: X, o
+WHEN (IR == TST_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: TST
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: TST | Operands: S, o
+WHEN (IR == TST_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: TST
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: TSTI | Operands: k
+WHEN (IR == TSTI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: TST
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: XOR | Operands: m
+WHEN (IR == XOR_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: XOR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: XOR | Operands: X, o
+WHEN (IR == XOR_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: XOR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: XOR | Operands: S, o
+WHEN (IR == XOR_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: XOR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: XORI | Operands: k
+WHEN (IR == XORI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: XOR
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 1;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: LDI | Operands: k
+WHEN (IR == LDI_k) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Pass k to DataAB
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 1;
+    CUALUInDataSel0 = 1;
+}
+" OpCode: LDD | Operands: m
+WHEN (IR == LDD_m) THEN {
+    " PAU: Increment
+    " DAU: Pass (m) to DataAB
+    " ALU: Pass (m) to DataAB
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: \+S, o
+WHEN (IR == LD_pSo) THEN {
+    " PAU: Increment
+    " DAU: S <- S + 1, Pass (S+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: \+X, o
+WHEN (IR == LD_pXo) THEN {
+    " PAU: Increment
+    " DAU: X <- X + 1, Pass (X+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: \-S, o
+WHEN (IR == LD_mSo) THEN {
+    " PAU: Increment
+    " DAU: S <- S - 1, Pass (S+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: \-X, o
+WHEN (IR == LD_mXo) THEN {
+    " PAU: Increment
+    " DAU: X <- X - 1, Pass (X+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: S+, o
+WHEN (IR == LD_Spo) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB, S <- S + 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: S, o
+WHEN (IR == LD_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: X+, o
+WHEN (IR == LD_Xpo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB, X <- X + 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: X, o
+WHEN (IR == LD_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: S-, o
+WHEN (IR == LD_Smo) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB, S <- S - 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: LD | Operands: X-, o
+WHEN (IR == LD_Xmo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB, X <- X - 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 0;
+    ALUF3 = 1;
+    ALUF2 = 0;
+    ALUF1 = 1;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 1;
+    ALUZeroAcc = 1;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: STD | Operands: m
+WHEN (IR == STD_m) THEN {
+    " PAU: Increment
+    " DAU: Pass Accumulator to DataAB
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: \+S, o
+WHEN (IR == ST_pSo) THEN {
+    " PAU: Increment
+    " DAU: S <- S + 1, Pass Accumulator to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: \+X, o
+WHEN (IR == ST_pXo) THEN {
+    " PAU: Increment
+    " DAU: X <- X + 1, Pass Accumulator
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: \-S, o
+WHEN (IR == ST_mSo) THEN {
+    " PAU: Increment
+    " DAU: S <- S - 1, Pass Accumulator
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: \-X, o
+WHEN (IR == ST_mXo) THEN {
+    " PAU: Increment
+    " DAU: X <- X - 1, Pass Accumulator
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: S+, o
+WHEN (IR == ST_Spo) THEN {
+    " PAU: Increment
+    " DAU: Pass Accumulator to DataAB, S <- S + 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: S, o
+WHEN (IR == ST_So) THEN {
+    " PAU: Increment
+    " DAU: Pass (S+o) to DataAB 
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: X+, o
+WHEN (IR == ST_Xpo) THEN {
+    " PAU: Increment
+    " DAU: Pass Accumulator to DataAB, X <- X + 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: X, o
+WHEN (IR == ST_Xo) THEN {
+    " PAU: Increment
+    " DAU: Pass (X+o) to DataAB
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST | Operands: X-, o
+WHEN (IR == ST_Xmo) THEN {
+    " PAU: Increment
+    " DAU: X <- X - 1, Pass Accumulator
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 1;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 1;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: ST  | Operands: S-,o
+WHEN (IR == ST_Smo) THEN {
+    " PAU: Increment
+    " DAU: Pass Accumulator, S <- S - 1
+    " ALU: Pass DataDB to Accumulator
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 1;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: JMP | Operands: a
+WHEN (IR == JMP_a) THEN {
+    " PAU: Direct Load a
+    " DAU: Inactive
+    " ALU: Inactive
+    PAULoad = 1;
+    PAUSel2 = 0;
+    PAUSel1 = 1;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: POPF
+WHEN (IR == POPF) THEN {
+    " PAU: increment
+    " DAU: post-increment S
+    " ALU: pass DDB through
+    " DataDataBus: Recieve Flags
+
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 1;
+    ALUF1 = 0;
+    ALUF0 = 1;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 1;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+" OpCode: PUSHF
+WHEN (IR == PUSHF) THEN {
+    " PAU: Increment
+    " DAU: pass (S + o) to DataAB, S <- S - 1
+    " ALU: Inactive
+    " DataDataBus: Output Flags
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 1;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" OpCode: NOP
+WHEN (IR == NOP) THEN {
+    " PAU: Increment
+    " DAU: Inactive
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 0;
+    DAUInputSel1 = 0;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+" MULTICYCLE INSTRUCTIONS
+
+WHEN ((StateBits == OneClock) & (IR == CALL_a)) THEN {
+    " PAU: Inactive
+    " DAU: Pass S reg
+    " ALU: Inactive
+
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 0;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+}
+
+WHEN (StateBits == Call1) THEN {
+    " PAU: Inactive
+    " DAU: S <- S - 1
+    " ALU: Inactive
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 0;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 1;
+    CUDataDBSel0 = 1;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+
+}
+
+WHEN (StateBits == Call2) THEN {
+    " PAU: Jump to a
+    " DAU: S <- S - 1
+    " ALU: Inactive
+
+    PAULoad = 1;
+    PAUSel2 = 0;
+    PAUSel1 = 1;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 1;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 1;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 1;
+    CUIO = 0;
+    CUDataDBSel1 = 1;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+ 
+}
+
+WHEN (StateBits == Call3) THEN {
+    " PAU: Jump to a
+    " DAU: Pass S reg
+    " ALU: Inactive
+
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+   
+}
+
+WHEN ((StateBits == OneClock) & (IR == RTS)) THEN {
+    " PAU: Jump to a
+    " DAU: Pass S reg
+    " ALU: Inactive
+
+    PAULoad = 1;
+    PAUSel2 = 1;
+    PAUSel1 = 0;
+    PAUSel0 = 0;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 1;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+  
+}
+
+WHEN (StateBits == RTS1) THEN {
+    " PAU: Jump to a
+    " DAU: S <- S + 1
+    " ALU: Inactive
+
+    PAULoad = 1;
+    PAUSel2 = 1;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 1;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 1;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 1;
+    CUDataDBSel0 = 1;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+   
+}
+
+WHEN (StateBits == RTS2) THEN {
+    " PAU: Increment
+    " DAU: Pass S reg
+    " ALU: Inactive
+
+    PAULoad = 0;
+    PAUSel2 = 0;
+    PAUSel1 = 0;
+    PAUSel0 = 1;
+    DAUUpdateX = 0;
+    DAUUpdateS = 1;
+    DAUInputSel1 = 1;
+    DAUInputSel0 = 0;
+    DAUPrePostAdd = 0;
+    DAUUseOffset = 0;
+    DAUInc = 0;
+    DAUDec = 0;
+    ALUHold = 1;
+    ALUF3 = 0;
+    ALUF2 = 0;
+    ALUF1 = 0;
+    ALUF0 = 0;
+    ALUHighSR2 = 0;
+    ALUHighSR1 = 0;
+    ALUHighSR0 = 0;
+    ALUMidSR = 0;
+    ALULowSR = 0;
+    ALUAddShift = 0;
+    ALUWithCarry = 0;
+    ALUAddSub = 0;
+    ALUZeroAcc = 0;
+    ALUPopF = 0;
+    ALUInvCarry = 0;
+    ALUSZUpdate = 0;
+    ALUCVUpdate = 0;
+    CURD = 0;
+    CUWR = 0;
+    CUIO = 0;
+    CUDataDBSel1 = 0;
+    CUDataDBSel0 = 0;
+    CUALUInDataSel1 = 0;
+    CUALUInDataSel0 = 0;
+ 
+}
+
+STATE_DIAGRAM StateBits  " Moore state machine that controls the instruction cycle
+
+STATE OneClock:
+  IF (IR == CALL_a) THEN Call1
+  ELSE IF (IR == RTS) THEN RTS1
+  ELSE OneClock;
+STATE Call1:
+  GOTO Call2;
+STATE Call2:
+  GOTO Call3;
+STATE Call3:
+  GOTO OneClock;
+STATE RTS1:
+  GOTO RTS2;
+STATE RTS2:
+  GOTO OneClock;
+
+END CU

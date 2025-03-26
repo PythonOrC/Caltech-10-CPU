@@ -1,0 +1,146 @@
+MODULE      CPU
+TITLE      'Caltech10 CPU Test Vectors'
+
+
+" Description:  These are the test vectors for the Caltech10 CPU.  This is a
+"               Harvard architecture CPU and as such has separate program and
+"               data address and data busses.  The program bus is read only
+"               and has no control signals.  It has 13 bits of address and 16
+"               bits of data.  The data bus is read/write and has separate
+"               read and write signals along with a Memory/IO signal to
+"               indicate if memory or I/O is being accessed.  The bus has 8
+"               bits of address and 8 bits of data.  On reset the program
+"               counter is set to 0.
+"
+"               These vectors test the flag instructions.  This includes the
+"               CLC, STC, CLI, STI, CLU, STU, JU, and JNU instructions.
+"
+" Inputs:         ProgramDB[15..0]  - the 16-bit program data bus
+"                 Reset             - system reset signal
+"                 Clock             - system clock
+"
+" I/O:            DataDB[7..0]      - the 8-bit data data bus
+"
+" Outputs:        ProgramAB[12..0]  - the 13-bit program address bus
+"                 DataAB[7..0]      - the 8-bit data address bus
+"                 RD                - read signal for the data data bus
+"                 WR                - write signal for the data data bus
+"                 IO                - memory (0) or I/O (1) is being accessed
+"
+" Status Outputs: Accum[7..0]       - the 8-bit accumulator
+"                 Flags[7..0]       - the 8-bit flag register
+"                 XReg[7..0]        - the 8-bit X register
+"                 SReg[7..0]        - the 8-bit S register
+
+
+" Revision History:
+" 11/05/17   Glen George  Initial Revision
+" 02/12/18   Glen George  Updated comments
+
+
+
+" Pin/Signal Declarations
+
+" Inputs
+
+ProgramDB15..ProgramDB0	pin;	"input  16-bit instruction data bus
+Reset           	pin;	"input  system reset signal
+Clock           	pin;	"input  system clock
+
+
+" I/O
+
+DataDB7..DataDB0	pin;	"I/O  8-bit Data data bus
+
+
+" Outputs
+
+ProgramAB12..ProgramAB0	pin;	"output  the 13-bit Program address bus
+DataAB7..DataAB0	pin;	"output  the 8-bit Data address bus
+RD			pin;	"output  read signal for the Data data bus
+WR			pin;	"output  write signal for the Data data bus
+IO			pin;	"output  accessing memory (0) or I/O (1)
+
+
+" Status Outputs
+
+Accum7..Accum0		pin;	"the accumulator
+Flags7..Flags0		pin;	"the flags
+XReg7..XReg0		pin;	"the X register
+SReg7..SReg0		pin;	"the S register
+Test7..Test0		pin;
+
+
+" Busses
+
+ProgramAB  =  [ProgramAB12..ProgramAB0];"Program address bus
+ProgramDB  =  [ProgramDB15..ProgramDB0];"16-bit instruction data bus
+DataAB     =  [DataAB7..DataAB0];	"Data address bus
+DataDB     =  [DataDB7..DataDB0];	"Data data bus
+Accum      =  [Accum7..Accum0];		"the accumulator
+Flags      =  [Flags7..Flags0];		"flags from the ALU
+XReg       =  [XReg7..XReg0];		"X register
+SReg       =  [SReg7..SReg0];		"S register
+
+
+
+" Test Vectors
+
+" try some instructions to test the design
+
+TEST_VECTORS ( [ Reset, Clock, ProgramDB, DataDB ] ->
+               [ ProgramAB, DataAB, RD, WR, IO, DataDB ] )
+
+" ; reset and test flag set and clear operations and JU/JNU instructions
+
+[ 1, 0, ^H1F80,  .Z. ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " reset CPU
+[ 1, 1, ^H1F80,  .Z. ] -> [    .X.,  .X., .X., .X., .X.,  .X. ];
+[ 1, 0, ^H1F80,  .Z. ] -> [    .X.,  .X.,  0 ,  0 , .X.,  .X. ];
+[ 1, 1, ^H1F80,  .Z. ] -> [    .X.,  .X.,  0 ,  0 , .X.,  .X. ];
+[ 1, 0, ^H1F80,  .Z. ] -> [ ^H0000,  .X.,  0 ,  0 ,  0 ,  .X. ];
+[ 1, 1, ^H1F80,  .Z. ] -> [ ^H0000,  .X.,  0 ,  0 ,  0 ,  .X. ];
+[ 0, 0, ^HC500, ^H70 ] -> [    .X.,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    JMP	$0500
+[ 0, 1, ^HC500, ^HA9 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;jump to 0500 so know address
+[ 0, 0, ^H8955, ^H75 ] -> [    .X.,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    LDI	$55
+[ 0, 1, ^H8955, ^H66 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;want to be sure all flags reset to start
+[ 0, 0, ^H6B01, ^H9E ] -> [ ^H0500,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ADDI	$1
+[ 0, 1, ^H6B01, ^HDE ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;adding 1 clears all ALU flags
+[ 0, 0, ^H0E00, ^H8F ] -> [ ^H0501,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H89 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if all flags are reset
+[ 0, 0, ^H7F0C,  .Z. ] -> [ ^H0502, ^HFF,  0 ,  1 ,  0 , ^H00 ]; "    STC
+[ 0, 1, ^H7F0C, ^H50 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;set carry flag
+[ 0, 0, ^H0E00, ^HA9 ] -> [ ^H0503,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H98 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if carry is set
+[ 0, 0, ^H7F81,  .Z. ] -> [ ^H0504, ^HFE,  0 ,  1 ,  0 , ^H08 ]; "    STI
+[ 0, 1, ^H7F81, ^HC4 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;set interrupt flag
+[ 0, 0, ^H0E00, ^H07 ] -> [ ^H0505,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HB8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if carry and interrupt are set
+[ 0, 0, ^H7F22,  .Z. ] -> [ ^H0506, ^HFD,  0 ,  1 ,  0 , ^H88 ]; "    STU
+[ 0, 1, ^H7F22, ^H94 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;set user flag
+[ 0, 0, ^HBC33, ^HF1 ] -> [ ^H0507,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    JNU	+$33
+[ 0, 1, ^HBC33, ^HA8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;should not take jump
+[ 0, 0, ^H0E00, ^H93 ] -> [ ^H0508,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H95 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if carry, interrupt, and user are set
+[ 0, 0, ^HBF1B,  .Z. ] -> [ ^H0509, ^HFC,  0 ,  1 ,  0 , ^HA8 ]; "    JU	+$1B
+[ 0, 1, ^HBF1B, ^HC9 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;should take jump
+[ 0, 0, ^H0769, ^H67 ] -> [ ^H050A,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    CLI
+[ 0, 1, ^H0769, ^H73 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;clear interrupt flag (branch slot)
+[ 0, 0, ^H0E00, ^H49 ] -> [ ^H0525,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HDF ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if only carry and user are set
+[ 0, 0, ^H07CA,  .Z. ] -> [ ^H0526, ^HFB,  0 ,  1 ,  0 , ^H28 ]; "    CLU
+[ 0, 1, ^H07CA, ^HF0 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;clear user flag
+[ 0, 0, ^HBFAB, ^H60 ] -> [ ^H0527,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    JU	-$55
+[ 0, 1, ^HBFAB, ^HC8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;should not take jump
+[ 0, 0, ^H0E00, ^HD7 ] -> [ ^H0528,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HD8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check if only carry is set (branch slot)
+[ 0, 0, ^HBC9A,  .Z. ] -> [ ^H0529, ^HFA,  0 ,  1 ,  0 , ^H08 ]; "    JNU	-$66
+[ 0, 1, ^HBC9A, ^H8E ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;should take jump
+[ 0, 0, ^H07E4, ^H9D ] -> [ ^H052A,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    CLC
+[ 0, 1, ^H07E4, ^HEC ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;clear interrupt flag (branch slot)
+[ 0, 0, ^H0E00, ^H44 ] -> [ ^H04C4,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HF8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now all should be clear again
+[ 0, 0, ^H1F80,  .Z. ] -> [ ^H04C5, ^HF9,  0 ,  1 ,  0 , ^H00 ]; "    NOP
+[ 0, 1, ^H1F80, ^H12 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;NOP to flush out the last write
+
+
+END  CPU

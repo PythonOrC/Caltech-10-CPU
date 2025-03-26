@@ -1,0 +1,1 @@
+-nodal -src homework10.bl5 -type BLIF -presrc homework10.bl3 -crf homework10.crf -sif homework10.sif -devfile "D:/ispLEVER_Classic2_1/ispcpld/dat/lc4k/m4s_256_128.dev" -lci homework10.lct

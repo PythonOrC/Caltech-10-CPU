@@ -1,0 +1,255 @@
+MODULE ALU
+TITLE 'Arithmetic Logic Unit'
+
+" Description: This module is the Arithmetic Logic Unit for the Calech 10 CPU.
+"              It is responsible for performing the arithmetic and logic
+"              operations for the CPU. The module has a total of 22 inputs and
+"              16 outputs.
+"
+" Inputs:       Data[7..0]       - 8 bits of data input
+"               Hold             - hold the accumulator from updating
+"               F3..F0           - 4 bits of F-Block inputs
+"                                  F3 F2 F1 F0  - Logic
+"                                   0  0  0  0  - 0
+"                                   0  0  0  1  - A  nor B
+"                                   0  0  1  1  -    not A
+"                                   0  1  0  1  -    not B
+"                                   0  1  1  0  - A  xor B
+"                                   0  1  1  1  - A nand B
+"                                   1  0  0  0  - A  and B
+"                                   1  0  0  1  - A Xnor B
+"                                   1  0  1  0  -        B
+"                                   1  1  0  0  - A
+"                                   1  1  1  0  - A   or B
+"                                   1  1  1  1  - 1
+"               LowSR            - 1: MSB,                   0: bit above
+"               MidSR            - 1: bit below,             0: bitr above
+"               HighSR2..HighSR0 - 3 bits of shift/rotate control
+"                                      001: MSB (self)
+"                                      010: LSB
+"                                      011: Carry
+"                                      1XX: Bit above
+"                                      000: 0
+"               AddShift         - 1: shift/rot,             0: add
+"               WithCarry        - 1: add/sub with carry,    0: add/sub without carry
+"               AddSub           - 1: add,                   0: sub
+"               zeroAcc          - 1: zero the accum,        0: don't zero the accum
+"               PopF             - 1: update flag with data  0: update flag with logic
+"               InvCarry         - 1: invert carry signal    0: don't invert carry
+"               SZUpdate         - 1: update sign/zero flag  0: don't update sign/zero flag
+"               CVUpdate         - 1: update carry/overflow  0: don't update carry/overflow
+"               Reset            - reset signal
+"               Clock            - clock signal
+
+" Outputs:      accum[7..0]      - 8 bits of accumulator output
+"               flags[7..0]      - 8 bits of flag output
+
+" Revision History:
+" 02/22/25   Ethan Hu     implemented the Arithmetic Logic Unit
+" 03/20/25   Ethan Hu     added shift/rotate functionality
+
+ALU INTERFACE  (Data7..Data0,
+                Hold,
+                F3..F0,
+                LowSR,
+                MidSR,
+                HighSR2..HighSR0,
+                AddShift,
+                WithCarry,
+                AddSub,
+                zeroAcc,
+                PopF,
+                InvCarry,
+                SZUpdate,
+                CVUpdate,
+                Reset,
+                Clock
+                -> Accum7..Accum0,
+                Flags7..Flags0);
+
+" pin/Signal declarations
+" Inputs
+Data7..Data0        pin;           " 8 bits of data input   
+Hold                pin;           " hold the accum from updating
+F3..F0              pin;           " 4 bits of F-Block input
+                                   " combo explained below
+LowSR               pin;           " direction of LSB shift/rotate
+                                   " 1: MSB, 0: bit above
+MidSR               pin;           " direction of middle bits S/R
+                                   " 1: bit below, 0: bit above
+HighSR2..HighSR0    pin;           " 3 bits of shift/rotate control
+                                   " for the highest bit
+                                   "    001: MSB (self)
+                                   "    010: LSB
+                                   "    011: Carry
+                                   "    1XX: Bit above
+                                   "    000: 0
+AddShift            pin;           " 1: shift/rot logic, 0: add logic
+WithCarry           pin;           " active high adder with carry
+AddSub              pin;           " active high addition
+                                   " active low subtraction
+zeroAcc             pin;           " active high zero the accum
+PopF                pin;           " active high update flag with data
+InvCarry            pin;           " active high invert carry signal
+SZUpdate            pin;           " active high update sign/zero flag
+CVUpdate            pin;           " active high update carry/overflow
+Reset               pin;           " system reset
+Clock               pin;           " system clock
+
+
+" Outputs
+Accum7..Accum0      pin     ISTYPE 'REG'; " 8 bits of accumulator output
+Flags7..Flags0      pin     ISTYPE 'REG'; " 8 bits of flag output
+
+" intermediate signals
+Fout7..Fout0             node;     " 8 bits of F block mux output
+CarryIn8..CarryIn0       node;     " 9 bits of carry in for the adder
+AdderOut7..AdderOut0     node;     " 8 bits of adder operand A (accumulator or 0)
+AdderInA7..AdderInA0     node;     " 8 bits of adder output
+ShiftRot7..ShiftRot0     node;     " 8 bits of shift/rot output
+AccOut7..AccOut0         node;     " 8 bits of adder/accumulator output
+CarrySR                  node;     " 1 bit of shift/rot carry out
+OverflowSR               node;     " 1 bit of shift/rot overflow out
+CarryAdder               node;     " 1 bit of adder carry out
+OverflowAdder            node;     " 1 bit of adder overflow out
+
+" buses
+Data     = [Data7..Data0];         " 8 bits data input
+Acc      = [Accum7..Accum0];       " 8 bits accumulator output
+Flags    = [Flags7..Flags0];       " 8 bits flag output
+Fout     = [Fout7..Fout0];         " 8 bits F block mux output
+CarryIn  = [CarryIn8..CarryIn0];   " 9 bits carry in for the adder
+AdderInA = [AdderInA7..AdderInA0]; " 8 bits adder operand A
+AdderOut = [AdderOut7..AdderOut0]; " 8 bits adder output
+ShiftRot = [ShiftRot7..ShiftRot0]; " 8 bits shift/rot output
+AccOut   = [AccOut7..AccOut0];     " 8 bits adder/accumulator output
+
+" Constants
+ZEROS = [0, 0, 0, 0, 0, 0, 0, 0];  " zeros constant
+
+EQUATIONS
+" Clock and reset
+Acc.CLK = Clock;
+Acc.CLR = Reset;
+
+Flags.CLK = Clock;
+Flags.CLR = Reset;
+
+" F block mux
+Fout = (F0 & !Acc & !Data) #  " !A & !B
+       (F1 & !Acc &  Data) #  " !A &  B
+       (F2 &  Acc & !Data) #  "  A & !B
+       (F3 &  Acc &  Data);   "  A &  B
+
+" F3..F0 combo table
+" F3 F2 F1 F0
+"  0  0  0  0  - 0
+"  0  0  0  1  - A  nor B
+"  0  0  1  1  -    not A
+"  0  1  0  1  -    not B
+"  0  1  1  0  - A  xor B
+"  0  1  1  1  - A nand B
+"  1  0  0  0  - A  and B
+"  1  0  0  1  - A Xnor B
+"  1  0  1  0  -        B
+"  1  1  0  0  - A
+"  1  1  1  0  - A   or B
+"  1  1  1  1  - 1
+
+" Adder
+" Determine the LSB carry in (0, 1, !carry, carry)
+                                                    
+CarryIn[0] = ( AddSub &  WithCarry &  Flags[3]) # " 11 ADC
+             (!AddSub &  WithCarry & !Flags[3]) # " 01 SBB
+             (!AddSub & !WithCarry            );  " 00 SUB
+                                                  " 10 ADD
+
+                    
+
+" determine what operand A is (Acc or 0)
+AdderInA = (Acc   & !zeroAcc) # 
+           (ZEROS &  zeroAcc);
+
+" Determine the carry in for the rest of the bits
+CarryIn[8..1] = (AdderInA & Fout) # ((AdderInA $ Fout) & CarryIn[7..0]);
+
+" Determine the output of the adder
+AdderOut = (AdderInA $ Fout $ CarryIn[7..0]);
+
+" Shift/Rot block
+
+" Update the carry flag for the shift/rot
+CarrySR = (!MidSR & Accum0) #    " 0 LSB
+          ( MidSR & Accum7);     " 1 MSBs
+OverflowSR  = (MidSR & (Accum7 $ Accum6)) # " 1 Overflow is CarrySR xor MSB
+              (!MidSR & Flags2);  " 0 Overflow is Flags2
+
+
+"(!MidSR) #          0 Overflow set to 0
+"              ( MidSR & Flags2);  1 Overflow remains same
+
+" Determine the highest bit: 0, bit 6, carry, MSB (self),
+ShiftRot[7] = (Acc[7]   & !HighSR2 & !HighSR1 &  HighSR0) # " 001 MSB (self)
+              (Acc[0]   & !HighSR2 &  HighSR1 & !HighSR0) # " 010 LSB
+              (Flags[3] & !HighSR2 &  HighSR1 &  HighSR0) # " 011 Carry
+              (Acc[6]   &  HighSR2);                        " 1XX Bit above
+                                                            " 000 0
+                                                         
+
+" Determine the mid bits (6..1): bit above or bit below
+ShiftRot[6..1] = (Acc[7..2] & !MidSR) # " 0 Bit above
+                 (Acc[5..0] &  MidSR);  " 1 Bit below
+
+" Determine the lowest bit: 0, bit 0, carry, MSB
+ShiftRot[0] = (Acc[1]   & !LowSR) # " 0 Bit above
+              (Acc[7]   &  LowSR);  " 1 MSB
+
+" Determine if result is from shift/rot or adder
+AccOut = (ShiftRot &  AddShift) # " 1 Shift/rot
+         (AdderOut & !AddShift);  " 0 Adder
+
+" Update Accumulator
+Acc  :=  (!Hold & AccOut) # " 0 Update Acc
+         ( Hold & Acc   );  " 1 Hold Acc
+
+" Update Flags
+CarryAdder = CarryIn8 $ !AddSub;
+OverflowAdder = CarryIn7 $ CarryIn8;
+
+" The flag update for shift rotate is not fully implemented:
+
+" Carry Flag
+Flags[3] := ( PopF & Data3) #                                    " if PopF, update with data
+            (!PopF & (CVUpdate & (                                " else if CVUpdate
+                         (!AddShift & (                          " if using adder
+                                   ( InvCarry & !CarryAdder) #   " Carry is CarryAdder or inverted
+                                   (!InvCarry &  CarryAdder))) # " 
+                         ( AddShift & CarrySR )) #               " if using S/R, Carry is CarrySR
+                    (!CVUpdate & Flags[3]))                      " else hold the flag
+           );
+
+" Overflow Flag                                        
+Flags[2] := ( PopF & Data2) #                          " if PopF, update with data" 
+            (!PopF & (CVUpdate & (                     " else if CVUpdate
+                         (!AddShift & OverflowAdder) # " if using adder
+                         ( AddShift & OverflowSR)) #   " if using S/R
+                    (!CVUpdate & Flags[2]))            " else hold the flag
+           );
+
+" Sign Flag
+Flags[1] := ( PopF & Data1) #                     " if PopF, update with data
+           (!PopF & (( SZUpdate & AccOut[7]) #    " else if SZUpdate, update
+                     (!SZUpdate & Flags[1]))      " else hold the flag
+           );
+
+" Zero Flag
+Flags[0] := ( PopF & Data0) #                          " if PopF, update with data
+           (!PopF & (( SZUpdate & (AccOut == ZEROS)) # " else if SZUpdate, update
+                     (!SZUpdate & Flags[0]))           " else hold the flag
+           );
+
+" The rest of the flags
+Flags[7..4] := (Data[7..4]  &  PopF) # " 0 Update Flags 
+              (Flags[7..4] & !PopF);  " 1 Hold Flags
+
+END ALU

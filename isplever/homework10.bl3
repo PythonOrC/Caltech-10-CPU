@@ -1,0 +1,4315 @@
+#$ TOOL ispLEVER Classic 2.1.00.02.49.20
+#$ DATE Thu Mar 20 13:47:17 2025
+#$ TITLE Caltech10 CPU
+#$ MODULE homework10
+#$ JEDECFILE cpu
+#$ PINS 83 ProgramDB15 ProgramDB14 ProgramDB13 ProgramDB12 ProgramDB11 ProgramDB10 \
+#  ProgramDB9 ProgramDB8 ProgramDB7 ProgramDB6 ProgramDB5 ProgramDB4 ProgramDB3 \
+#  ProgramDB2 ProgramDB1 ProgramDB0 Reset Clock DataDB7 DataDB6 DataDB5 DataDB4 DataDB3 \
+#  DataDB2 DataDB1 DataDB0 ProgramAB12 ProgramAB11 ProgramAB10 ProgramAB9 ProgramAB8 \
+#  ProgramAB7 ProgramAB6 ProgramAB5 ProgramAB4 ProgramAB3 ProgramAB2 ProgramAB1 \
+#  ProgramAB0 DataAB7 DataAB6 DataAB5 DataAB4 DataAB3 DataAB2 DataAB1 DataAB0 RD WR IO Accum7 \
+#  Accum6 Accum5 Accum4 Accum3 Accum2 Accum1 Accum0 Flags7 Flags6 Flags5 Flags4 Flags3 Flags2 \
+#  Flags1 Flags0 XReg7 XReg6 XReg5 XReg4 XReg3 XReg2 XReg1 XReg0 SReg7 SReg6 SReg5 SReg4 SReg3 \
+#  SReg2 SReg1 SReg0 debug
+#$ NODES 182 ALUnit>Data0'co'  ALUnit>Data1'co'  ALUnit>Data2'co'  ALUnit>Data3'co'  \
+#  ALUnit>Data4'co'  ALUnit>Data5'co'  ALUnit>Data6'co'  ALUnit>Data7'co'  ALUnit>Accum0'co,o'  \
+#  ALUnit>Accum1'co,o'  ALUnit>Accum2'co,o'  ALUnit>Accum3'co,o'  ALUnit>Accum4'co,o'  \
+#  ALUnit>Accum5'co,o'  ALUnit>Accum6'co,o'  ALUnit>Accum7'co,o'  ALUnit>Flags0'co,o'  \
+#  ALUnit>Flags1'co,o'  ALUnit>Flags2'co,o'  ALUnit>Flags3'co,o'  ALUnit>Flags4'co,o'  \
+#  ALUnit>Flags5'co,o'  ALUnit>Flags6'co,o'  ALUnit>Flags7'co,o'  CUnit>ALUAddShift'co,o'  \
+#  CUnit>ALUAddSub'co,o'  CUnit>ALUCVUpdate'co,o'  CUnit>ALUF0'co,o'  CUnit>ALUF1'co,o'  \
+#  CUnit>ALUF2'co,o'  CUnit>ALUF3'co,o'  CUnit>ALUHighSR0'co,o'  CUnit>ALUHighSR1'co,o'  \
+#  CUnit>ALUHighSR2'co,o'  CUnit>ALUHold'co,o'  CUnit>ALUInvCarry'co,o'  CUnit>ALUMidSR'co,o'  \
+#  CUnit>ALUPopF'co,o'  CUnit>ALUSZUpdate'co,o'  CUnit>ALUZeroAcc'co,o'  \
+#  CUnit>CUALUInDataSel0'co,o'  CUnit>CUALUInDataSel1'co,o'  CUnit>CUDataDBSel0'co,o'  \
+#  CUnit>CUDataDBSel1'co,o'  CUnit>IR0'co,o'  CUnit>IR1'co,o'  CUnit>IR10'co,o'  CUnit>IR11'co,o'  \
+#  CUnit>IR12'co,o'  CUnit>IR13'co,o'  CUnit>IR14'co,o'  CUnit>IR15'co,o'  CUnit>IR2'co,o'  CUnit>IR3'co,o'  \
+#  CUnit>IR4'co,o'  CUnit>IR5'co,o'  CUnit>IR6'co,o'  CUnit>IR7'co,o'  CUnit>IR8'co,o'  CUnit>IR9'co,o'  \
+#  CUnit>PAUSel0'co,o'  CUnit>PAUSel1'co,o'  CUnit>debug'co'  DAUnit>Dec'co'  DAUnit>Inc'co'  \
+#  DAUnit>InputSel0'co'  DAUnit>InputSel1'co'  DAUnit>PrePostAdd'co'  DAUnit>UpdateS'co'  \
+#  DAUnit>UpdateX'co'  DAUnit>UseOffset'co'  DAUnit>SReg0'co,o'  DAUnit>SReg1'co,o'  \
+#  DAUnit>SReg2'co,o'  DAUnit>SReg3'co,o'  DAUnit>SReg4'co,o'  DAUnit>SReg5'co,o'  DAUnit>SReg6'co,o'  \
+#  DAUnit>SReg7'co,o'  DAUnit>XReg0'co,o'  DAUnit>XReg1'co,o'  DAUnit>XReg2'co,o'  DAUnit>XReg3'co,o'  \
+#  DAUnit>XReg4'co,o'  DAUnit>XReg5'co,o'  DAUnit>XReg6'co,o'  DAUnit>XReg7'co,o'  PAUnit>Load'co'  \
+#  PAUnit>Offset0'co'  PAUnit>Offset1'co'  PAUnit>Offset2'co'  PAUnit>Offset3'co'  \
+#  PAUnit>Offset4'co'  PAUnit>Offset7'co'  PAUnit>Sel2'co'  PAUnit>PC0'co,o'  PAUnit>PC1'co,o'  \
+#  PAUnit>PC10'co,o'  PAUnit>PC11'co,o'  PAUnit>PC12'co,o'  PAUnit>PC2'co,o'  PAUnit>PC3'co,o'  \
+#  PAUnit>PC4'co,o'  PAUnit>PC5'co,o'  PAUnit>PC6'co,o'  PAUnit>PC7'co,o'  PAUnit>PC8'co,o'  PAUnit>PC9'co,o'  \
+#  ALUnit/Fout7 ALUnit/Fout6 ALUnit/Fout5 ALUnit/Fout4 ALUnit/Fout3 ALUnit/Fout2 \
+#  ALUnit/Fout1 ALUnit/Fout0 ALUnit/CarryIn8 ALUnit/CarryIn7 ALUnit/CarryIn6 \
+#  ALUnit/CarryIn5 ALUnit/CarryIn4 ALUnit/CarryIn3 ALUnit/CarryIn2 ALUnit/CarryIn1 \
+#  ALUnit/CarryIn0 ALUnit/ShiftRot0 ALUnit/AccOut7 ALUnit/AccOut6 ALUnit/AccOut5 \
+#  ALUnit/AccOut4 ALUnit/AccOut3 ALUnit/AccOut2 ALUnit/AccOut1 CUnit/StateBit2 \
+#  CUnit/StateBit1 CUnit/StateBit0 CUnit/HoldIR DAUnit/SelectedAddr7 \
+#  DAUnit/SelectedAddr6 DAUnit/SelectedAddr5 DAUnit/SelectedAddr4 \
+#  DAUnit/SelectedAddr3 DAUnit/SelectedAddr2 DAUnit/SelectedAddr1 \
+#  DAUnit/SelectedAddr0 DAUnit/IncDecOut7 DAUnit/IncDecOut6 DAUnit/IncDecOut5 \
+#  DAUnit/IncDecOut4 DAUnit/IncDecOut3 DAUnit/IncDecOut2 DAUnit/IncDecOut1 \
+#  DAUnit/AdderCarryIn7 DAUnit/AdderCarryIn6 DAUnit/AdderCarryIn5 \
+#  DAUnit/AdderCarryIn4 DAUnit/AdderCarryIn3 DAUnit/AdderCarryIn2 \
+#  DAUnit/AdderCarryIn1 PAUnit/Carry11 PAUnit/Carry10 PAUnit/Carry9 PAUnit/Carry8 \
+#  PAUnit/Carry7 PAUnit/Carry6 PAUnit/Carry5 PAUnit/Carry4 PAUnit/Carry3 PAUnit/Carry2 \
+#  PAUnit/AddElement12 PAUnit/AddElement11 PAUnit/AddElement10 PAUnit/AddElement9 \
+#  PAUnit/AddElement8 PAUnit/AddElement7 PAUnit/AddElement6 PAUnit/AddElement5 \
+#  PAUnit/AddElement4 PAUnit/AddElement3 PAUnit/AddElement2 PAUnit/AddElement1 \
+#  PAUnit/AddElement0
+.model cpu
+.inputs CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum7.BLIF \
+Flags7.BLIF PAUnit>PC7.BLIF Accum6.BLIF PAUnit>PC6.BLIF Accum5.BLIF \
+Flags5.BLIF PAUnit>PC5.BLIF Accum4.BLIF PAUnit>PC4.BLIF PAUnit>PC12.BLIF \
+Accum3.BLIF Flags3.BLIF PAUnit>PC3.BLIF PAUnit>PC11.BLIF Accum2.BLIF \
+Flags2.BLIF PAUnit>PC2.BLIF PAUnit>PC10.BLIF Accum1.BLIF Flags1.BLIF \
+PAUnit>PC1.BLIF PAUnit>PC9.BLIF Accum0.BLIF Flags0.BLIF PAUnit>PC0.BLIF \
+PAUnit>PC8.BLIF ProgramDB15.BLIF ProgramDB14.BLIF ProgramDB13.BLIF \
+ProgramDB12.BLIF ProgramDB11.BLIF ProgramDB10.BLIF ProgramDB9.BLIF \
+ProgramDB8.BLIF ProgramDB7.BLIF ProgramDB6.BLIF ProgramDB5.BLIF \
+ProgramDB4.BLIF ProgramDB3.BLIF ProgramDB2.BLIF ProgramDB1.BLIF \
+ProgramDB0.BLIF Reset.BLIF Clock.BLIF CUnit>debug.BLIF \
+CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB7.BLIF XReg7.BLIF \
+SReg7.BLIF CUnit>IR7.BLIF DataDB6.BLIF XReg6.BLIF SReg6.BLIF CUnit>IR6.BLIF \
+DataDB5.BLIF XReg5.BLIF SReg5.BLIF CUnit>IR5.BLIF DataDB4.BLIF XReg4.BLIF \
+SReg4.BLIF CUnit>IR4.BLIF DataDB3.BLIF XReg3.BLIF SReg3.BLIF CUnit>IR3.BLIF \
+DataDB2.BLIF XReg2.BLIF SReg2.BLIF CUnit>IR2.BLIF DataDB1.BLIF XReg1.BLIF \
+SReg1.BLIF CUnit>IR1.BLIF DataDB0.BLIF XReg0.BLIF SReg0.BLIF CUnit>IR0.BLIF \
+CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+CUnit>ALUHold.BLIF CUnit>ALUMidSR.BLIF CUnit>ALUHighSR2.BLIF \
+CUnit>ALUHighSR1.BLIF CUnit>ALUHighSR0.BLIF CUnit>ALUAddShift.BLIF \
+CUnit>ALUAddSub.BLIF CUnit>ALUZeroAcc.BLIF CUnit>ALUPopF.BLIF \
+CUnit>ALUInvCarry.BLIF CUnit>ALUSZUpdate.BLIF CUnit>ALUCVUpdate.BLIF \
+ALUnit>Accum7.BLIF ALUnit>Accum6.BLIF ALUnit>Accum5.BLIF ALUnit>Accum4.BLIF \
+ALUnit>Accum3.BLIF ALUnit>Accum2.BLIF ALUnit>Accum1.BLIF ALUnit>Accum0.BLIF \
+ALUnit>Flags7.BLIF ALUnit>Flags6.BLIF ALUnit>Flags5.BLIF ALUnit>Flags4.BLIF \
+ALUnit>Flags3.BLIF ALUnit>Flags2.BLIF ALUnit>Flags1.BLIF ALUnit>Flags0.BLIF \
+DAUnit>XReg7.BLIF DAUnit>XReg6.BLIF DAUnit>XReg5.BLIF DAUnit>XReg4.BLIF \
+DAUnit>XReg3.BLIF DAUnit>XReg2.BLIF DAUnit>XReg1.BLIF DAUnit>XReg0.BLIF \
+DAUnit>SReg7.BLIF DAUnit>SReg6.BLIF DAUnit>SReg5.BLIF DAUnit>SReg4.BLIF \
+DAUnit>SReg3.BLIF DAUnit>SReg2.BLIF DAUnit>SReg1.BLIF DAUnit>SReg0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF WR.BLIF ALUnit>Data0.BLIF \
+ALUnit>Data1.BLIF ALUnit>Data2.BLIF ALUnit>Data3.BLIF ALUnit>Data4.BLIF \
+ALUnit>Data5.BLIF ALUnit>Data6.BLIF ALUnit>Data7.BLIF ALUnit/Fout7.BLIF \
+ALUnit/Fout6.BLIF ALUnit/Fout5.BLIF ALUnit/Fout4.BLIF ALUnit/Fout3.BLIF \
+ALUnit/Fout2.BLIF ALUnit/Fout1.BLIF ALUnit/Fout0.BLIF ALUnit/CarryIn8.BLIF \
+ALUnit/CarryIn7.BLIF ALUnit/CarryIn6.BLIF ALUnit/CarryIn5.BLIF \
+ALUnit/CarryIn4.BLIF ALUnit/CarryIn3.BLIF ALUnit/CarryIn2.BLIF \
+ALUnit/CarryIn1.BLIF ALUnit/CarryIn0.BLIF ALUnit/ShiftRot0.BLIF \
+ALUnit/AccOut7.BLIF ALUnit/AccOut6.BLIF ALUnit/AccOut5.BLIF \
+ALUnit/AccOut4.BLIF ALUnit/AccOut3.BLIF ALUnit/AccOut2.BLIF \
+ALUnit/AccOut1.BLIF CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF \
+CUnit/StateBit2.Q CUnit/StateBit1.Q CUnit/StateBit0.Q CUnit/HoldIR.BLIF \
+DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit>InputSel0.BLIF DAUnit>InputSel1.BLIF \
+DAUnit>PrePostAdd.BLIF DAUnit>UpdateS.BLIF DAUnit>UpdateX.BLIF \
+DAUnit>UseOffset.BLIF DAUnit/SelectedAddr7.BLIF DAUnit/SelectedAddr6.BLIF \
+DAUnit/SelectedAddr5.BLIF DAUnit/SelectedAddr4.BLIF DAUnit/SelectedAddr3.BLIF \
+DAUnit/SelectedAddr2.BLIF DAUnit/SelectedAddr1.BLIF DAUnit/SelectedAddr0.BLIF \
+DAUnit/IncDecOut7.BLIF DAUnit/IncDecOut6.BLIF DAUnit/IncDecOut5.BLIF \
+DAUnit/IncDecOut4.BLIF DAUnit/IncDecOut3.BLIF DAUnit/IncDecOut2.BLIF \
+DAUnit/IncDecOut1.BLIF DAUnit/AdderCarryIn7.BLIF DAUnit/AdderCarryIn6.BLIF \
+DAUnit/AdderCarryIn5.BLIF DAUnit/AdderCarryIn4.BLIF DAUnit/AdderCarryIn3.BLIF \
+DAUnit/AdderCarryIn2.BLIF DAUnit/AdderCarryIn1.BLIF PAUnit>Load.BLIF \
+PAUnit>Offset0.BLIF PAUnit>Offset1.BLIF PAUnit>Offset2.BLIF \
+PAUnit>Offset3.BLIF PAUnit>Offset4.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF \
+PAUnit/Carry11.BLIF PAUnit/Carry10.BLIF PAUnit/Carry9.BLIF PAUnit/Carry8.BLIF \
+PAUnit/Carry7.BLIF PAUnit/Carry6.BLIF PAUnit/Carry5.BLIF PAUnit/Carry4.BLIF \
+PAUnit/Carry3.BLIF PAUnit/Carry2.BLIF PAUnit/AddElement12.BLIF \
+PAUnit/AddElement11.BLIF PAUnit/AddElement10.BLIF PAUnit/AddElement9.BLIF \
+PAUnit/AddElement8.BLIF PAUnit/AddElement7.BLIF PAUnit/AddElement6.BLIF \
+PAUnit/AddElement5.BLIF PAUnit/AddElement4.BLIF PAUnit/AddElement3.BLIF \
+PAUnit/AddElement2.BLIF PAUnit/AddElement1.BLIF PAUnit/AddElement0.BLIF
+.outputs DataDB7 DataDB6 DataDB5 DataDB4 DataDB3 DataDB2 DataDB1 DataDB0 \
+ProgramAB12 ProgramAB11 ProgramAB10 ProgramAB9 ProgramAB8 ProgramAB7 \
+ProgramAB6 ProgramAB5 ProgramAB4 ProgramAB3 ProgramAB2 ProgramAB1 ProgramAB0 \
+RD WR IO Accum7 Accum6 Accum5 Accum4 Accum3 Accum2 Accum1 Accum0 Flags7 Flags6 \
+Flags5 Flags4 Flags3 Flags2 Flags1 Flags0 XReg7 XReg6 XReg5 XReg4 XReg3 XReg2 \
+XReg1 XReg0 SReg7 SReg6 SReg5 SReg4 SReg3 SReg2 SReg1 SReg0 debug ALUnit>Data0 \
+ALUnit>Data1 ALUnit>Data2 ALUnit>Data3 ALUnit>Data4 ALUnit>Data5 ALUnit>Data6 \
+ALUnit>Data7 DAUnit>Dec DAUnit>Inc DAUnit>InputSel0 DAUnit>InputSel1 \
+DAUnit>PrePostAdd DAUnit>UpdateS DAUnit>UpdateX DAUnit>UseOffset PAUnit>Load \
+PAUnit>Offset0 PAUnit>Offset1 PAUnit>Offset2 PAUnit>Offset3 PAUnit>Offset4 \
+PAUnit>Offset7 PAUnit>Sel2 DataDB7.OE DataDB6.OE DataDB5.OE DataDB4.OE \
+DataDB3.OE DataDB2.OE DataDB1.OE DataDB0.OE ProgramAB12.OE ProgramAB11.OE \
+ProgramAB10.OE ProgramAB9.OE ProgramAB8.OE ProgramAB7.OE ProgramAB6.OE \
+ProgramAB5.OE ProgramAB4.OE ProgramAB3.OE ProgramAB2.OE ProgramAB1.OE \
+ProgramAB0.OE DataAB7.OE DataAB6.OE DataAB5.OE DataAB4.OE DataAB3.OE \
+DataAB2.OE DataAB1.OE DataAB0.OE RD.OE WR.OE IO.OE Accum7.OE Accum6.OE \
+Accum5.OE Accum4.OE Accum3.OE Accum2.OE Accum1.OE Accum0.OE Flags7.OE \
+Flags6.OE Flags5.OE Flags4.OE Flags3.OE Flags2.OE Flags1.OE Flags0.OE XReg7.OE \
+XReg6.OE XReg5.OE XReg4.OE XReg3.OE XReg2.OE XReg1.OE XReg0.OE SReg7.OE \
+SReg6.OE SReg5.OE SReg4.OE SReg3.OE SReg2.OE SReg1.OE SReg0.OE \
+ALUnit>Accum0.CLR ALUnit>Accum0.C ALUnit>Accum1.REG ALUnit>Accum1.CLR \
+ALUnit>Accum1.C ALUnit>Accum2.REG ALUnit>Accum2.CLR ALUnit>Accum2.C \
+ALUnit>Accum3.REG ALUnit>Accum3.CLR ALUnit>Accum3.C ALUnit>Accum4.REG \
+ALUnit>Accum4.CLR ALUnit>Accum4.C ALUnit>Accum5.REG ALUnit>Accum5.CLR \
+ALUnit>Accum5.C ALUnit>Accum6.REG ALUnit>Accum6.CLR ALUnit>Accum6.C \
+ALUnit>Accum7.REG ALUnit>Accum7.CLR ALUnit>Accum7.C ALUnit>Flags0.REG \
+ALUnit>Flags0.CLR ALUnit>Flags0.C ALUnit>Flags1.REG ALUnit>Flags1.CLR \
+ALUnit>Flags1.C ALUnit>Flags2.REG ALUnit>Flags2.CLR ALUnit>Flags2.C \
+ALUnit>Flags3.CLR ALUnit>Flags3.C ALUnit>Flags4.REG ALUnit>Flags4.CLR \
+ALUnit>Flags4.C ALUnit>Flags5.REG ALUnit>Flags5.CLR ALUnit>Flags5.C \
+ALUnit>Flags6.REG ALUnit>Flags6.CLR ALUnit>Flags6.C ALUnit>Flags7.REG \
+ALUnit>Flags7.CLR ALUnit>Flags7.C ALUnit/Fout7 ALUnit/Fout6 ALUnit/Fout5 \
+ALUnit/Fout4 ALUnit/Fout3 ALUnit/Fout2 ALUnit/Fout1 ALUnit/Fout0 \
+ALUnit/CarryIn8 ALUnit/CarryIn7 ALUnit/CarryIn6 ALUnit/CarryIn5 \
+ALUnit/CarryIn4 ALUnit/CarryIn3 ALUnit/CarryIn2 ALUnit/CarryIn1 \
+CUnit>ALUAddShift CUnit>ALUAddSub CUnit>ALUCVUpdate CUnit>ALUF0 CUnit>ALUF1 \
+CUnit>ALUF2 CUnit>ALUF3 CUnit>ALUHighSR0 CUnit>ALUHighSR1 CUnit>ALUHighSR2 \
+CUnit>ALUHold CUnit>ALUInvCarry CUnit>ALUMidSR CUnit>ALUPopF CUnit>ALUSZUpdate \
+CUnit>ALUZeroAcc CUnit>CUALUInDataSel0 CUnit>CUALUInDataSel1 \
+CUnit>CUDataDBSel0 CUnit>CUDataDBSel1 CUnit>IR0.REG CUnit>IR0.C CUnit>IR1.REG \
+CUnit>IR1.C CUnit>IR10.REG CUnit>IR10.C CUnit>IR11.REG CUnit>IR11.C \
+CUnit>IR12.REG CUnit>IR12.C CUnit>IR13.REG CUnit>IR13.C CUnit>IR14.REG \
+CUnit>IR14.C CUnit>IR15.REG CUnit>IR15.C CUnit>IR2.REG CUnit>IR2.C \
+CUnit>IR3.REG CUnit>IR3.C CUnit>IR4.REG CUnit>IR4.C CUnit>IR5.REG CUnit>IR5.C \
+CUnit>IR6.REG CUnit>IR6.C CUnit>IR7.REG CUnit>IR7.C CUnit>IR8.REG CUnit>IR8.C \
+CUnit>IR9.REG CUnit>IR9.C CUnit>PAUSel0 CUnit>PAUSel1 CUnit/StateBit2.REG \
+CUnit/StateBit2.CLR CUnit/StateBit2.C CUnit/StateBit1.REG CUnit/StateBit1.CLR \
+CUnit/StateBit1.C CUnit/StateBit0.REG CUnit/StateBit0.CLR CUnit/StateBit0.C \
+CUnit/HoldIR DAUnit>SReg0.CLR DAUnit>SReg0.C DAUnit>SReg1.REG DAUnit>SReg1.CLR \
+DAUnit>SReg1.C DAUnit>SReg2.REG DAUnit>SReg2.CLR DAUnit>SReg2.C \
+DAUnit>SReg3.REG DAUnit>SReg3.CLR DAUnit>SReg3.C DAUnit>SReg4.REG \
+DAUnit>SReg4.CLR DAUnit>SReg4.C DAUnit>SReg5.REG DAUnit>SReg5.CLR \
+DAUnit>SReg5.C DAUnit>SReg6.REG DAUnit>SReg6.CLR DAUnit>SReg6.C \
+DAUnit>SReg7.REG DAUnit>SReg7.CLR DAUnit>SReg7.C DAUnit>XReg0.CLR \
+DAUnit>XReg0.C DAUnit>XReg1.REG DAUnit>XReg1.CLR DAUnit>XReg1.C \
+DAUnit>XReg2.REG DAUnit>XReg2.CLR DAUnit>XReg2.C DAUnit>XReg3.REG \
+DAUnit>XReg3.CLR DAUnit>XReg3.C DAUnit>XReg4.REG DAUnit>XReg4.CLR \
+DAUnit>XReg4.C DAUnit>XReg5.REG DAUnit>XReg5.CLR DAUnit>XReg5.C \
+DAUnit>XReg6.REG DAUnit>XReg6.CLR DAUnit>XReg6.C DAUnit>XReg7.REG \
+DAUnit>XReg7.CLR DAUnit>XReg7.C DAUnit/SelectedAddr7 DAUnit/SelectedAddr6 \
+DAUnit/SelectedAddr5 DAUnit/SelectedAddr4 DAUnit/SelectedAddr3 \
+DAUnit/SelectedAddr2 DAUnit/SelectedAddr1 DAUnit/SelectedAddr0 \
+DAUnit/AdderCarryIn7 DAUnit/AdderCarryIn6 DAUnit/AdderCarryIn5 \
+DAUnit/AdderCarryIn4 DAUnit/AdderCarryIn3 DAUnit/AdderCarryIn2 PAUnit>PC0.REG \
+PAUnit>PC0.CLR PAUnit>PC0.C PAUnit>PC1.CLR PAUnit>PC1.C PAUnit>PC10.CLR \
+PAUnit>PC10.C PAUnit>PC11.CLR PAUnit>PC11.C PAUnit>PC12.CLR PAUnit>PC12.C \
+PAUnit>PC2.CLR PAUnit>PC2.C PAUnit>PC3.CLR PAUnit>PC3.C PAUnit>PC4.CLR \
+PAUnit>PC4.C PAUnit>PC5.CLR PAUnit>PC5.C PAUnit>PC6.CLR PAUnit>PC6.C \
+PAUnit>PC7.CLR PAUnit>PC7.C PAUnit>PC8.CLR PAUnit>PC8.C PAUnit>PC9.CLR \
+PAUnit>PC9.C PAUnit/Carry11 PAUnit/Carry10 PAUnit/Carry9 PAUnit/Carry8 \
+PAUnit/Carry7 PAUnit/Carry6 PAUnit/Carry5 PAUnit/Carry4 PAUnit/Carry3 \
+PAUnit/Carry2 PAUnit/AddElement12 PAUnit/AddElement11 PAUnit/AddElement10 \
+PAUnit/AddElement9 PAUnit/AddElement8 PAUnit/AddElement7 PAUnit/AddElement6 \
+PAUnit/AddElement5 PAUnit/AddElement4 PAUnit/AddElement3 PAUnit/AddElement2 \
+PAUnit/AddElement1 PAUnit/AddElement0 DataAB7.X1 DataAB7.X2 DataAB6.X1 \
+DataAB6.X2 DataAB5.X1 DataAB5.X2 DataAB4.X1 DataAB4.X2 DataAB3.X1 DataAB3.X2 \
+DataAB2.X1 DataAB2.X2 DataAB1.X1 DataAB1.X2 DataAB0.X1 DataAB0.X2 \
+ALUnit>Accum0.REG.X1 ALUnit>Accum0.REG.X2 ALUnit>Flags3.REG.X1 \
+ALUnit>Flags3.REG.X2 DAUnit>SReg0.REG.X1 DAUnit>SReg0.REG.X2 \
+DAUnit>XReg0.REG.X1 DAUnit>XReg0.REG.X2 PAUnit>PC1.REG.X1 PAUnit>PC1.REG.X2 \
+PAUnit>PC10.REG.X1 PAUnit>PC10.REG.X2 PAUnit>PC11.REG.X1 PAUnit>PC11.REG.X2 \
+PAUnit>PC12.REG.X1 PAUnit>PC12.REG.X2 PAUnit>PC2.REG.X1 PAUnit>PC2.REG.X2 \
+PAUnit>PC3.REG.X1 PAUnit>PC3.REG.X2 PAUnit>PC4.REG.X1 PAUnit>PC4.REG.X2 \
+PAUnit>PC5.REG.X1 PAUnit>PC5.REG.X2 PAUnit>PC6.REG.X1 PAUnit>PC6.REG.X2 \
+PAUnit>PC7.REG.X1 PAUnit>PC7.REG.X2 PAUnit>PC8.REG.X1 PAUnit>PC8.REG.X2 \
+PAUnit>PC9.REG.X1 PAUnit>PC9.REG.X2 ALUnit/CarryIn0.X1 ALUnit/CarryIn0.X2 \
+ALUnit/ShiftRot0.X1 ALUnit/ShiftRot0.X2 ALUnit/AccOut7.X1 ALUnit/AccOut7.X2 \
+ALUnit/AccOut6.X1 ALUnit/AccOut6.X2 ALUnit/AccOut5.X1 ALUnit/AccOut5.X2 \
+ALUnit/AccOut4.X1 ALUnit/AccOut4.X2 ALUnit/AccOut3.X1 ALUnit/AccOut3.X2 \
+ALUnit/AccOut2.X1 ALUnit/AccOut2.X2 ALUnit/AccOut1.X1 ALUnit/AccOut1.X2 \
+DAUnit/IncDecOut7.X1 DAUnit/IncDecOut7.X2 DAUnit/IncDecOut6.X1 \
+DAUnit/IncDecOut6.X2 DAUnit/IncDecOut5.X1 DAUnit/IncDecOut5.X2 \
+DAUnit/IncDecOut4.X1 DAUnit/IncDecOut4.X2 DAUnit/IncDecOut3.X1 \
+DAUnit/IncDecOut3.X2 DAUnit/IncDecOut2.X1 DAUnit/IncDecOut2.X2 \
+DAUnit/IncDecOut1.X1 DAUnit/IncDecOut1.X2 DAUnit/AdderCarryIn1.X1 \
+DAUnit/AdderCarryIn1.X2
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum7.BLIF Flags7.BLIF \
+PAUnit>PC7.BLIF DataDB7
+01-1- 1
+001-- 1
+10--1 1
+000-- 0
+-1-0- 0
+11--- 0
+1---0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum6.BLIF \
+PAUnit>PC6.BLIF DataDB6
+001- 1
+10-1 1
+0-0- 0
+1--0 0
+-1-- 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum5.BLIF Flags5.BLIF \
+PAUnit>PC5.BLIF DataDB5
+01-1- 1
+001-- 1
+10--1 1
+000-- 0
+-1-0- 0
+11--- 0
+1---0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum4.BLIF \
+PAUnit>PC4.BLIF PAUnit>PC12.BLIF DataDB4
+001-- 1
+10-1- 1
+11--1 1
+10-0- 0
+0-0-- 0
+01--- 0
+-1--0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum3.BLIF Flags3.BLIF \
+PAUnit>PC3.BLIF PAUnit>PC11.BLIF DataDB3
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum2.BLIF Flags2.BLIF \
+PAUnit>PC2.BLIF PAUnit>PC10.BLIF DataDB2
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum1.BLIF Flags1.BLIF \
+PAUnit>PC1.BLIF PAUnit>PC9.BLIF DataDB1
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUDataDBSel1.BLIF CUnit>CUDataDBSel0.BLIF Accum0.BLIF Flags0.BLIF \
+PAUnit>PC0.BLIF PAUnit>PC8.BLIF DataDB0
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names Clock.BLIF CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF CUnit>IR12.BLIF \
+CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit/StateBit2.Q CUnit/StateBit1.Q \
+CUnit/StateBit0.Q RD
+0--------1-0-0000--- 1
+0--------10-0-100--- 1
+0--------10--0100--- 1
+00000000011111000-00 1
+0--------0-00-110--- 1
+0--------0-10-010--- 1
+0--------10-1-001--- 1
+0--------0-0-0110--- 1
+0--------1010-1-0--- 1
+0--------0-1-0010--- 1
+0--------101-01-0--- 1
+0---------00-0001--- 1
+0---------001000---- 1
+0-----------10001--- 1
+0--------1-00-000--- 1
+0----------------100 1
+-1--------1-11---0-- 0
+--1-------1-11---0-- 0
+---1------1-11---0-- 0
+----1-----1-11---0-- 0
+-----1----1-11---0-- 0
+------1---1-11---0-- 0
+-------1--1-11---0-- 0
+--------1-1-11---0-- 0
+----------0-11--00-- 0
+-----------10---10-- 0
+---------01----000-- 0
+-----------10---1-1- 0
+---------01----00-1- 0
+---------0---1--10-- 0
+---------0---1--1-1- 0
+-----------10---1--1 0
+---------01----00--1 0
+----------1--1--1-1- 0
+---------0---1--1--1 0
+----------1--1--1--1 0
+---------1----01--1- 0
+---------0--0--00-1- 0
+---------11---1---1- 0
+---------1----01---1 0
+------------11-1-0-- 0
+---------0--0--00--1 0
+---------11---1----1 0
+---------0-1---000-- 0
+---------0--0--000-- 0
+---------1110----0-- 0
+-----------011--00-- 0
+---------111-0--00-- 0
+----------1---10-0-- 0
+---------101--0-00-- 0
+-----------1--000-1- 0
+-----------1--000--1 0
+-----------0--01--1- 0
+---------1-0---1--1- 0
+-----------0--01-0-- 0
+------------11--0-1- 0
+------------01--1-1- 0
+---------0----10--1- 0
+-----------0--01---1 0
+---------1-0---1-0-- 0
+---------0-1--1---1- 0
+----------1-0---1-1- 0
+------------01--10-- 0
+---------0----10-0-- 0
+---------1-0---1---1 0
+------------11--0--1 0
+---------0-1--1--0-- 0
+------------01--1--1 0
+---------0----10---1 0
+----------1-0---10-- 0
+----------1--1--10-- 0
+---------0-1--1----1 0
+----------1-0---1--1 0
+---------------11-1- 0
+--------------1-1-1- 0
+---------------110-- 0
+--------------1-10-- 0
+---------------11--1 0
+--------------1-1--1 0
+1------------------- 0
+.names Clock.BLIF CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF CUnit>IR12.BLIF \
+CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit/StateBit2.Q CUnit/StateBit1.Q \
+CUnit/StateBit0.Q WR
+00000000001110000--- 1
+0---------00-0101--- 1
+0--------10-1-101--- 1
+0-----------10101--- 1
+0----------------010 1
+0----------------001 1
+-1--------------0-00 0
+-1--------------0-11 0
+--1-------------0-00 0
+--1-------------0-11 0
+-1--------------01-- 0
+---1------------0-00 0
+---1------------0-11 0
+--1-------------01-- 0
+----1-----------0-00 0
+----1-----------0-11 0
+---1------------01-- 0
+-----1----------0-00 0
+-----1----------0-11 0
+----1-----------01-- 0
+------1---------0-00 0
+------1---------0-11 0
+-------1--------0-00 0
+-------1--------0-11 0
+-----1----------01-- 0
+--------1-------0-00 0
+--------1-------0-11 0
+------1---------01-- 0
+---------1------0-00 0
+---------1------0-11 0
+----------0-----0-00 0
+----------0-----0-11 0
+-------1--------01-- 0
+-----------0----0-00 0
+-----------0----0-11 0
+--------1-------01-- 0
+---------1------01-- 0
+----------0-----01-- 0
+-----------0----01-- 0
+--------------1-0-00 0
+--------------1-0-11 0
+---------0---1----00 0
+-----------10-----00 0
+---------0---1----11 0
+-----------10-----11 0
+----------1--1----00 0
+----------1-0-----00 0
+----------1--1----11 0
+----------1-0-----11 0
+--------------1-01-- 0
+------------01----00 0
+------------01----11 0
+---------0---1---1-- 0
+-----------10----1-- 0
+----------1--1---1-- 0
+----------1-0----1-- 0
+------------01---1-- 0
+--------------0-1-00 0
+--------------0-1-11 0
+--------------0-11-- 0
+---------------1--00 0
+---------------1--11 0
+---------------1-1-- 0
+1------------------- 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB0.BLIF \
+XReg0.BLIF SReg0.BLIF CUnit>IR0.BLIF ALUnit>Data0
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB1.BLIF \
+XReg1.BLIF SReg1.BLIF CUnit>IR1.BLIF ALUnit>Data1
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB2.BLIF \
+XReg2.BLIF SReg2.BLIF CUnit>IR2.BLIF ALUnit>Data2
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB3.BLIF \
+XReg3.BLIF SReg3.BLIF CUnit>IR3.BLIF ALUnit>Data3
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB4.BLIF \
+XReg4.BLIF SReg4.BLIF CUnit>IR4.BLIF ALUnit>Data4
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB5.BLIF \
+XReg5.BLIF SReg5.BLIF CUnit>IR5.BLIF ALUnit>Data5
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB6.BLIF \
+XReg6.BLIF SReg6.BLIF CUnit>IR6.BLIF ALUnit>Data6
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>CUALUInDataSel1.BLIF CUnit>CUALUInDataSel0.BLIF DataDB7.BLIF \
+XReg7.BLIF SReg7.BLIF CUnit>IR7.BLIF ALUnit>Data7
+10--1- 1
+01-1-- 1
+001--- 1
+11---1 1
+10--0- 0
+01-0-- 0
+000--- 0
+11---0 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF DataDB0.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset0
+00000001-11111000 1
+-------1-------11 1
+--------1------0- 1
+--------1-------0 1
+1-------0-------0 0
+-1------0-------0 0
+--1-----0-------0 0
+---1----0-------0 0
+----1---0-------0 0
+-----1--0-------0 0
+------1-0-------0 0
+--------00------0 0
+--------0-0-----0 0
+--------0--0----0 0
+--------0---0---0 0
+--------0----0--0 0
+--------0-----1-0 0
+-------0-------11 0
+--------0------01 0
+-------00-------- 0
+--------0------10 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF DataDB1.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset1
+0000001-011111000 1
+------1--------11 1
+-------1-------0- 1
+-------1--------0 1
+1------0--------0 0
+-1-----0--------0 0
+--1----0--------0 0
+---1---0--------0 0
+----1--0--------0 0
+-----1-0--------0 0
+-------01-------0 0
+-------0-0------0 0
+-------0--0-----0 0
+-------0---0----0 0
+-------0----0---0 0
+-------0-----0--0 0
+-------0------1-0 0
+------0--------11 0
+-------0-------01 0
+------00--------- 0
+-------0-------10 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF DataDB2.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset2
+000001-0011111000 1
+-----1---------11 1
+------1--------0- 1
+------1---------0 1
+1-----0---------0 0
+-1----0---------0 0
+--1---0---------0 0
+---1--0---------0 0
+----1-0---------0 0
+------01--------0 0
+------0-1-------0 0
+------0--0------0 0
+------0---0-----0 0
+------0----0----0 0
+------0-----0---0 0
+------0------0--0 0
+------0-------1-0 0
+-----0---------11 0
+------0--------01 0
+-----00---------- 0
+------0--------10 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+DataDB3.BLIF CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset3
+00001-00011111000 1
+----1----------11 1
+-----1---------0- 1
+-----1----------0 1
+1----0----------0 0
+-1---0----------0 0
+--1--0----------0 0
+---1-0----------0 0
+-----01---------0 0
+-----0-1--------0 0
+-----0--1-------0 0
+-----0---0------0 0
+-----0----0-----0 0
+-----0-----0----0 0
+-----0------0---0 0
+-----0-------0--0 0
+-----0--------1-0 0
+----0----------11 0
+-----0---------01 0
+----00----------- 0
+-----0---------10 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF DataDB4.BLIF \
+CUnit>IR4.BLIF CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset4
+0001-000011111000 1
+---1-----------11 1
+----1----------0- 1
+----1-----------0 1
+1---0-----------0 0
+-1--0-----------0 0
+--1-0-----------0 0
+----01----------0 0
+----0-1---------0 0
+----0--1--------0 0
+----0---1-------0 0
+----0----0------0 0
+----0-----0-----0 0
+----0------0----0 0
+----0-------0---0 0
+----0--------0--0 0
+----0---------1-0 0
+---0-----------11 0
+----0----------01 0
+---00------------ 0
+----0----------10 0
+.names DataDB7.BLIF CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF \
+CUnit>IR4.BLIF CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Offset7
+1-000000011111000 1
+1--------------11 1
+-1-------------0- 1
+-1--------------0 1
+-01-------------0 0
+-0-1------------0 0
+-0--1-----------0 0
+-0---1----------0 0
+-0----1---------0 0
+-0-----1--------0 0
+-0------1-------0 0
+-0-------0------0 0
+-0--------0-----0 0
+-0---------0----0 0
+-0----------0---0 0
+-0-----------0--0 0
+-0------------1-0 0
+0--------------11 0
+-0-------------01 0
+00--------------- 0
+-0-------------10 0
+.names ProgramAB12.OE
+ 1
+.names ProgramAB11.OE
+ 1
+.names ProgramAB10.OE
+ 1
+.names ProgramAB9.OE
+ 1
+.names ProgramAB8.OE
+ 1
+.names ProgramAB7.OE
+ 1
+.names ProgramAB6.OE
+ 1
+.names ProgramAB5.OE
+ 1
+.names ProgramAB4.OE
+ 1
+.names ProgramAB3.OE
+ 1
+.names ProgramAB2.OE
+ 1
+.names ProgramAB1.OE
+ 1
+.names ProgramAB0.OE
+ 1
+.names DataAB7.OE
+ 1
+.names DataAB6.OE
+ 1
+.names DataAB5.OE
+ 1
+.names DataAB4.OE
+ 1
+.names DataAB3.OE
+ 1
+.names DataAB2.OE
+ 1
+.names DataAB1.OE
+ 1
+.names DataAB0.OE
+ 1
+.names RD.OE
+ 1
+.names WR.OE
+ 1
+.names IO.OE
+ 1
+.names Accum7.OE
+ 1
+.names Accum6.OE
+ 1
+.names Accum5.OE
+ 1
+.names Accum4.OE
+ 1
+.names Accum3.OE
+ 1
+.names Accum2.OE
+ 1
+.names Accum1.OE
+ 1
+.names Accum0.OE
+ 1
+.names Flags7.OE
+ 1
+.names Flags6.OE
+ 1
+.names Flags5.OE
+ 1
+.names Flags4.OE
+ 1
+.names Flags3.OE
+ 1
+.names Flags2.OE
+ 1
+.names Flags1.OE
+ 1
+.names Flags0.OE
+ 1
+.names XReg7.OE
+ 1
+.names XReg6.OE
+ 1
+.names XReg5.OE
+ 1
+.names XReg4.OE
+ 1
+.names XReg3.OE
+ 1
+.names XReg2.OE
+ 1
+.names XReg1.OE
+ 1
+.names XReg0.OE
+ 1
+.names SReg7.OE
+ 1
+.names SReg6.OE
+ 1
+.names SReg5.OE
+ 1
+.names SReg4.OE
+ 1
+.names SReg3.OE
+ 1
+.names SReg2.OE
+ 1
+.names SReg1.OE
+ 1
+.names SReg0.OE
+ 1
+.names CUnit>ALUHold.BLIF ALUnit>Accum1.BLIF ALUnit/AccOut1.BLIF \
+ALUnit>Accum1.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum2.BLIF ALUnit/AccOut2.BLIF \
+ALUnit>Accum2.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum3.BLIF ALUnit/AccOut3.BLIF \
+ALUnit>Accum3.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum4.BLIF ALUnit/AccOut4.BLIF \
+ALUnit>Accum4.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum5.BLIF ALUnit/AccOut5.BLIF \
+ALUnit>Accum5.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum6.BLIF ALUnit/AccOut6.BLIF \
+ALUnit>Accum6.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUHold.BLIF ALUnit>Accum7.BLIF ALUnit/AccOut7.BLIF \
+ALUnit>Accum7.REG
+11- 1
+0-1 1
+10- 0
+0-0 0
+.names CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF CUnit>ALUPopF.BLIF \
+CUnit>ALUSZUpdate.BLIF ALUnit>Accum0.BLIF ALUnit>Flags0.BLIF ALUnit>Data0.BLIF \
+ALUnit/Fout0.BLIF ALUnit/CarryIn0.BLIF ALUnit/ShiftRot0.BLIF \
+ALUnit/AccOut7.BLIF ALUnit/AccOut6.BLIF ALUnit/AccOut5.BLIF \
+ALUnit/AccOut4.BLIF ALUnit/AccOut3.BLIF ALUnit/AccOut2.BLIF \
+ALUnit/AccOut1.BLIF ALUnit>Flags0.REG
+00011--10-0000000 1
+00011--01-0000000 1
+0-010--00-0000000 1
+0101---00-0000000 1
+0-010--11-0000000 1
+0101---11-0000000 1
+1-01-----00000000 1
+--00-1----------- 1
+--1---1---------- 1
+00011--00-------- 0
+00011--11-------- 0
+0-010--10-------- 0
+0101---10-------- 0
+0-010--01-------- 0
+0101---01-------- 0
+--00-0----------- 0
+--1---0---------- 0
+1-01-----1------- 0
+--01-----------1- 0
+--01----------1-- 0
+--01---------1--- 0
+--01--------1---- 0
+--01-------1----- 0
+--01------1------ 0
+--01------------1 0
+.names CUnit>ALUPopF.BLIF CUnit>ALUSZUpdate.BLIF ALUnit>Flags1.BLIF \
+ALUnit>Data1.BLIF ALUnit/AccOut7.BLIF ALUnit>Flags1.REG
+001-- 1
+1--1- 1
+01--1 1
+000-- 0
+1--0- 0
+01--0 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUPopF.BLIF \
+CUnit>ALUCVUpdate.BLIF ALUnit>Accum7.BLIF ALUnit>Accum6.BLIF \
+ALUnit>Flags2.BLIF ALUnit>Data2.BLIF ALUnit/CarryIn8.BLIF ALUnit/CarryIn7.BLIF \
+ALUnit>Flags2.REG
+110110---- 1
+110101---- 1
+010---1--- 1
+-001----10 1
+-001----01 1
+--1----1-- 1
+--00--1--- 1
+110100---- 0
+110111---- 0
+-001----00 0
+-001----11 0
+010---0--- 0
+--1----0-- 0
+--00--0--- 0
+.names CUnit>ALUPopF.BLIF ALUnit>Flags4.BLIF ALUnit>Data4.BLIF \
+ALUnit>Flags4.REG
+01- 1
+1-1 1
+00- 0
+1-0 0
+.names CUnit>ALUPopF.BLIF ALUnit>Flags5.BLIF ALUnit>Data5.BLIF \
+ALUnit>Flags5.REG
+01- 1
+1-1 1
+00- 0
+1-0 0
+.names CUnit>ALUPopF.BLIF ALUnit>Flags6.BLIF ALUnit>Data6.BLIF \
+ALUnit>Flags6.REG
+01- 1
+1-1 1
+00- 0
+1-0 0
+.names CUnit>ALUPopF.BLIF ALUnit>Flags7.BLIF ALUnit>Data7.BLIF \
+ALUnit>Flags7.REG
+01- 1
+1-1 1
+00- 0
+1-0 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum7.BLIF ALUnit>Data7.BLIF ALUnit/Fout7
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum6.BLIF ALUnit>Data6.BLIF ALUnit/Fout6
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum5.BLIF ALUnit>Data5.BLIF ALUnit/Fout5
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum4.BLIF ALUnit>Data4.BLIF ALUnit/Fout4
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum3.BLIF ALUnit>Data3.BLIF ALUnit/Fout3
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum2.BLIF ALUnit>Data2.BLIF ALUnit/Fout2
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum1.BLIF ALUnit>Data1.BLIF ALUnit/Fout1
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUF3.BLIF CUnit>ALUF2.BLIF CUnit>ALUF1.BLIF CUnit>ALUF0.BLIF \
+ALUnit>Accum0.BLIF ALUnit>Data0.BLIF ALUnit/Fout0
+---100 1
+-1--10 1
+--1-01 1
+1---11 1
+---000 0
+-0--10 0
+--0-01 0
+0---11 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum7.BLIF ALUnit/Fout7.BLIF \
+ALUnit/CarryIn7.BLIF ALUnit/CarryIn8
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum6.BLIF ALUnit/Fout6.BLIF \
+ALUnit/CarryIn6.BLIF ALUnit/CarryIn7
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum5.BLIF ALUnit/Fout5.BLIF \
+ALUnit/CarryIn5.BLIF ALUnit/CarryIn6
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum4.BLIF ALUnit/Fout4.BLIF \
+ALUnit/CarryIn4.BLIF ALUnit/CarryIn5
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum3.BLIF ALUnit/Fout3.BLIF \
+ALUnit/CarryIn3.BLIF ALUnit/CarryIn4
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum2.BLIF ALUnit/Fout2.BLIF \
+ALUnit/CarryIn2.BLIF ALUnit/CarryIn3
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum1.BLIF ALUnit/Fout1.BLIF \
+ALUnit/CarryIn1.BLIF ALUnit/CarryIn2
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>ALUZeroAcc.BLIF ALUnit>Accum0.BLIF ALUnit/Fout0.BLIF \
+ALUnit/CarryIn0.BLIF ALUnit/CarryIn1
+011- 1
+01-1 1
+--11 1
+-00- 0
+1-0- 0
+-0-0 0
+1--0 0
+--00 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR2.BLIF \
+CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF CUnit>IR7.BLIF \
+CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF \
+CUnit>ALUAddShift
+11000000010001 1
+010------01001 1
+---1-----1---- 0
+----1----1---- 0
+-----1---1---- 0
+------1--1---- 0
+-------1-1---- 0
+--------11---- 0
+0---------0--- 0
+---------11--- 0
+1--------0---- 0
+------------1- 0
+-----------1-- 0
+--1----------- 0
+-0------------ 0
+-------------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR1.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUAddSub
+11000000001110- 1
+001-------10010 1
+001-------01--- 1
+-01-------00001 1
+001--------1-01 1
+001-------0-00- 1
+100-------10110 1
+110---------0-0 1
+110-------1101- 1
+010-------000-1 1
+1-0---------101 1
+010---------1-0 1
+1----------111- 0
+1--1-------11-0 0
+1---1------11-0 0
+1----1-----11-0 0
+1-----1----11-0 0
+-0--------00-1- 0
+1------1---11-0 0
+1-------1--11-0 0
+1--------1-11-0 0
+1-1--------1--- 0
+0----------01-1 0
+11---------01-0 0
+----------1-111 0
+1-0---------001 0
+0-0---------0-0 0
+0-0--------1--1 0
+--1--------01-- 0
+1---------0--11 0
+----------100-1 0
+-0--------1--00 0
+-0--------11-1- 0
+10----------0-0 0
+000------------ 0
+1---------0-1-0 0
+-11------------ 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR2.BLIF \
+CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF CUnit>IR7.BLIF \
+CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF \
+CUnit>ALUCVUpdate
+1-000000010001 1
+100------11100 1
+110--------0-0 1
+000--------0-1 1
+000------0000- 1
+0-0------000-1 1
+110------1101- 1
+0-0------0-001 1
+-00--------001 1
+-1-1-----10--1 0
+-1--1----10--1 0
+-1---1---10--1 0
+-1----1--10--1 0
+01--------1-1- 0
+-1-----1-10--1 0
+-1------110--1 0
+0----------1-- 0
+-0-------01--0 0
+1---------0-11 0
+-0----------10 0
+-1-------11-01 0
+10--------0--0 0
+-0-------1-0-0 0
+01-------1---- 0
+10----------1- 0
+11-------0---1 0
+-1---------1-- 0
+01-----------0 0
+--1----------- 0
+-----------1-1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>ALUF0
+10010110 1
+10011100 1
+11011011 1
+0000100- 1
+000--0-1 1
+-00--001 1
+-1-0---- 0
+-----010 0
+1---0-11 0
+-1-----0 0
+----0-00 0
+0--1---0 0
+---0-1-- 0
+10--1-1- 0
+1----0-0 0
+-1----0- 0
+01------ 0
+--1----- 0
+-----1-1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR1.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUF1
+1-000000001110- 1
+001-------10010 1
+001-------01--- 1
+110---------0-0 1
+100-------10110 1
+001-------0-00- 1
+110-------1101- 1
+001--------1-01 1
+1-0---------101 1
+-01-------00001 1
+100-------1110- 1
+--0---------111 0
+-----------0100 0
+0---------1--00 0
+-0--------00-1- 0
+-1----------11- 0
+--0---------001 0
+--0-------0-1-0 0
+--0-------0--11 0
+----------100-1 0
+-0--------11-1- 0
+--1--------01-- 0
+1-1--------1--- 0
+10----------0-0 0
+-11------------ 0
+-1-------1--1-0 0
+-1------1---1-0 0
+-1-----1----1-0 0
+-1----1-----1-0 0
+-1---1------1-0 0
+-1--1-------1-0 0
+-1-1--------1-0 0
+0-0------------ 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>ALUF2
+-00--001 1
+0000100- 1
+0-0000-1 1
+11011011 1
+1-0--101 1
+000--0-1 1
+-1-01-1- 0
+11--00-- 0
+01-1---- 0
+-1--100- 0
+-----11- 0
+10----1- 0
+0----1-- 0
+--1----- 0
+----0--0 0
+---1---0 0
+------10 0
+1------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR1.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUF3
+11000000001110- 1
+001-------10010 1
+-01-------00001 1
+001-------01--- 1
+001--------1-01 1
+110-------1101- 1
+110---------101 1
+110---------0-0 1
+001-------0-00- 1
+010-------000-1 1
+010---------1-0 1
+1---------0--11 0
+-0--------11-1- 0
+-0--------00-1- 0
+1-0---------001 0
+0-0--------1--1 0
+-0--------1--00 0
+0-0---------1-1 0
+0-0---------0-0 0
+10---------1--- 0
+10------------0 0
+-0---------01-- 0
+----------100-1 0
+1--------1--1-0 0
+1-------1---1-0 0
+1------1----1-0 0
+1-----1-----1-0 0
+1----1------1-0 0
+1---1-------1-0 0
+1--1--------1-0 0
+1---------0-1-0 0
+1-----------11- 0
+1----------01-0 0
+-11------------ 0
+-00------------ 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUHighSR0
+110100000010001 1
+-------------1- 0
+------------1-- 0
+-----------1--- 0
+----------0---- 0
+---------1----- 0
+--------1------ 0
+-------1------- 0
+------1-------- 0
+-----1--------- 0
+----1---------- 0
+---0----------- 0
+--1------------ 0
+-0------------- 0
+0-------------- 0
+--------------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR1.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUHighSR1
+110100000010001 1
+-------------1- 0
+------------1-- 0
+-----------1--- 0
+----------0---- 0
+---------1----- 0
+--------1------ 0
+-------1------- 0
+------1-------- 0
+-----1--------- 0
+----1---------- 0
+---0----------- 0
+--1------------ 0
+-0------------- 0
+0-------------- 0
+--------------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF \
+CUnit>ALUHighSR2
+01001001 1
+------1- 0
+-----1-- 0
+----0--- 0
+---1---- 0
+--1----- 0
+-0------ 0
+1------- 0
+-------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q CUnit>ALUHold
+00-0000000-11111--0 1
+000000010101-100--- 1
+000000000011-100--- 1
+0-0000000-001110--- 1
+-11---------------0 1
+-01--------00-1---- 1
+-01--------11-1---- 1
+----------------1-0 1
+00-0000000111111--- 1
+000--------101-0--- 1
+100----------001--- 1
+000--------01-00--- 1
+101--------0-0-0--- 1
+01-----------110--- 1
+101---------1--1--- 1
+101--------01------ 1
+011---------------- 1
+-----------------01 1
+-----------------10 1
+--0----1-0-11-00000 0
+--0------1111-00000 0
+--0------1----11000 0
+-001-------0--1-000 0
+--0----0--011-00000 0
+--0----1-0-11-00-11 0
+-00-1------0--1-000 0
+-00--------11-10000 0
+-00-------1-1-10-11 0
+--0--------0--11-11 0
+-00--1-----0--1-000 0
+-00------11111---11 0
+-00----0--0111---11 0
+-001-------0--1--11 0
+-00---1----0--1-000 0
+-01---------0-01-11 0
+-00-----1--0--1-000 0
+-00-1------0--1--11 0
+-0---------0010-000 0
+-001-------111--000 0
+-001-------111---11 0
+-00-------10--1-000 0
+-00--1-----0--1--11 0
+-00-1------111--000 0
+-01--------1--00000 0
+-00---1----0--1--11 0
+-00-1------111---11 0
+0-0--------0---1000 0
+-01--------1--00-11 0
+-00--1-----111--000 0
+-00-----1--0--1--11 0
+--0--------1-0-0000 0
+-00--1-----111---11 0
+-00---1----111--000 0
+--0--------1-0-0-11 0
+-00--------00--0000 0
+-00---1----111---11 0
+-00----1----1-1-000 0
+-00-----1--111--000 0
+1-0----------1--000 0
+1-----------010--11 0
+--0---------0-11-11 0
+-00--------00--0-11 0
+--0---------01-1000 0
+-00----1----1-1--11 0
+-00-----1--111---11 0
+1-0----------1---11 0
+00------------01000 0
+001-----------0-000 0
+--0----------01-000 0
+00------------01-11 0
+001-----------0--11 0
+--0----------01--11 0
+-01---------0-01000 0
+001--------01---000 0
+001--------01----11 0
+-01--------10---000 0
+-01--------10----11 0
+-10------------1000 0
+1-0------------0000 0
+-10-----------0-000 0
+-10------------1-11 0
+1-0------------0-11 0
+-10-----------0--11 0
+11---------------11 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF \
+CUnit>ALUInvCarry
+00000000 1
+11011011 1
+1------0 0
+---0---1 0
+----1-0- 0
+-0----1- 0
+---10--- 0
+01------ 0
+-----1-- 0
+--1----- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>ALUMidSR
+01001001 1
+------1- 0
+-----1-- 0
+----0--- 0
+---1---- 0
+--1----- 0
+-0------ 0
+1------- 0
+-------0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR8.BLIF \
+CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>ALUPopF
+00001000 1
+------1- 0
+-----1-- 0
+----0--- 0
+---1---- 0
+--1----- 0
+-1------ 0
+1------- 0
+-------1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR2.BLIF \
+CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF CUnit>IR7.BLIF \
+CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF CUnit>IR12.BLIF \
+CUnit>ALUSZUpdate
+1-000000010-01 1
+-00--------001 1
+010--------1-0 1
+100------10110 1
+000--------0-1 1
+100------1110- 1
+110--------0-0 1
+000------0000- 1
+1-0--------101 1
+0-0------000-1 1
+110------1101- 1
+0-0------0-001 1
+01-------1---1 0
+-1-1-----100-1 0
+-1--1----100-1 0
+-1---1---100-1 0
+-1----1--100-1 0
+-1-----1-100-1 0
+-0--------0100 0
+01--------1-11 0
+-1-------11001 0
+00----------10 0
+1---------111- 0
+10-------0---0 0
+-1------1100-1 0
+-0-------1-0-0 0
+00--------1--0 0
+10---------01- 0
+1---------0-11 0
+11-------0-0-1 0
+0----------1-1 0
+01---------0-0 0
+11---------1-0 0
+--1----------- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR1.BLIF \
+CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF CUnit>IR6.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit>ALUZeroAcc
+1-000000001110- 1
+001-------10010 1
+-01-------00001 1
+001-------01--- 1
+100-------10110 1
+010---------1-0 1
+001-------0-00- 1
+001--------1-01 1
+1-0---------101 1
+100-------1110- 1
+1-1-----------0 0
+1----------0-00 0
+11-----------1- 0
+1-1--------1--- 0
+----------1000- 0
+000------------ 0
+--1-------11--0 0
+0-0-----------1 0
+-0--------00-1- 0
+----------1--11 0
+--1--------01-- 0
+1----------1-1- 0
+11-------1----0 0
+11------1-----0 0
+11-----1------0 0
+11----1-------0 0
+11---1--------0 0
+11--1---------0 0
+11-1----------0 0
+--0---------0-- 0
+-11------------ 0
+1---------0---0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>CUALUInDataSel0
+110100000001110- 1
+-00--------11001 1
+001--------10010 1
+000--------110-1 1
+010--------111-0 1
+110--------110-0 1
+1-0--------11101 1
+-1----------0--- 0
+------------0--1 0
+------------01-- 0
+10------------1- 0
+01-----------0-- 0
+-00------------0 0
+0------------1-1 0
+--1---------1--- 0
+------------0-0- 0
+1---------1--1-0 0
+1--------1---1-0 0
+1-------1----1-0 0
+1------1-----1-0 0
+1-----1------1-0 0
+1----1-------1-0 0
+1---1--------1-0 0
+1--0---------1-0 0
+-1-----------0-1 0
+1------------11- 0
+-----------0---- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit>CUALUInDataSel1
+110000000001110- 1
+-00--------11001 1
+001--------10010 1
+000--------110-1 1
+010--------111-0 1
+110--------110-0 1
+1-0--------11101 1
+0------------1-1 0
+01-----------0-- 0
+------------0-0- 0
+10------------1- 0
+00-----------1-- 0
+-1----------0--- 0
+-00------------0 0
+------------0--1 0
+--1---------1--- 0
+1---------1--1-0 0
+1--------1---1-0 0
+1-------1----1-0 0
+1------1-----1-0 0
+1-----1------1-0 0
+1----1-------1-0 0
+1---1--------1-0 0
+1--1---------1-0 0
+-1-----------0-1 0
+1------------11- 0
+-----------0---- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q CUnit>CUDataDBSel0
+0000000000001110--- 1
+----------------100 1
+----------------001 1
+---------------10-0 0
+--------------0-0-0 0
+-------------0--0-0 0
+------------0---0-0 0
+-----------1----0-0 0
+----------1-----0-0 0
+---------1------0-0 0
+--------1-------0-0 0
+-------1--------0-0 0
+------1---------0-0 0
+-----1----------0-0 0
+----1-----------0-0 0
+---1------------0-0 0
+--1-------------0-0 0
+-1--------------0-0 0
+1---------------0-0 0
+---------------11-1 0
+--------------0-1-1 0
+-------------0--1-1 0
+------------0---1-1 0
+-----------1----1-1 0
+----------1-----1-1 0
+---------1------1-1 0
+--------1-------1-1 0
+-------1--------1-1 0
+------1---------1-1 0
+-----1----------1-1 0
+----1-----------1-1 0
+---1------------1-1 0
+--1-------------1-1 0
+-1--------------1-1 0
+1---------------1-1 0
+---------------1-1- 0
+--------------0--1- 0
+-------------0---1- 0
+------------0----1- 0
+-----------1-----1- 0
+----------1------1- 0
+---------1-------1- 0
+--------1--------1- 0
+-------1---------1- 0
+------1----------1- 0
+-----1-----------1- 0
+----1------------1- 0
+---1-------------1- 0
+--1--------------1- 0
+-1---------------1- 0
+1----------------1- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q CUnit>CUDataDBSel1
+000000000001111100- 1
+----------------100 1
+----------------010 1
+----------------001 1
+----------------11- 0
+-----------------11 0
+----------------1-1 0
+---------------0000 0
+--------------0-000 0
+-------------0--000 0
+------------0---000 0
+-----------0----000 0
+----------1-----000 0
+---------1------000 0
+--------1-------000 0
+-------1--------000 0
+------1---------000 0
+-----1----------000 0
+----1-----------000 0
+---1------------000 0
+--1-------------000 0
+-1--------------000 0
+1---------------000 0
+.names ProgramDB0.BLIF CUnit>IR0.BLIF CUnit/HoldIR.BLIF CUnit>IR0.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB1.BLIF CUnit>IR1.BLIF CUnit/HoldIR.BLIF CUnit>IR1.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB10.BLIF CUnit>IR10.BLIF CUnit/HoldIR.BLIF CUnit>IR10.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB11.BLIF CUnit>IR11.BLIF CUnit/HoldIR.BLIF CUnit>IR11.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB12.BLIF CUnit>IR12.BLIF CUnit/HoldIR.BLIF CUnit>IR12.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB13.BLIF CUnit>IR13.BLIF CUnit/HoldIR.BLIF CUnit>IR13.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB14.BLIF CUnit>IR14.BLIF CUnit/HoldIR.BLIF CUnit>IR14.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB15.BLIF CUnit>IR15.BLIF CUnit/HoldIR.BLIF CUnit>IR15.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB2.BLIF CUnit>IR2.BLIF CUnit/HoldIR.BLIF CUnit>IR2.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB3.BLIF CUnit>IR3.BLIF CUnit/HoldIR.BLIF CUnit>IR3.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB4.BLIF CUnit>IR4.BLIF CUnit/HoldIR.BLIF CUnit>IR4.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB5.BLIF CUnit>IR5.BLIF CUnit/HoldIR.BLIF CUnit>IR5.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB6.BLIF CUnit>IR6.BLIF CUnit/HoldIR.BLIF CUnit>IR6.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB7.BLIF CUnit>IR7.BLIF CUnit/HoldIR.BLIF CUnit>IR7.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB8.BLIF CUnit>IR8.BLIF CUnit/HoldIR.BLIF CUnit>IR8.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names ProgramDB9.BLIF CUnit>IR9.BLIF CUnit/HoldIR.BLIF CUnit>IR9.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names Flags5.BLIF Flags3.BLIF Flags2.BLIF Flags1.BLIF Flags0.BLIF \
+CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF CUnit>IR3.BLIF \
+CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF \
+CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF CUnit>IR14.BLIF \
+CUnit>IR15.BLIF CUnit/StateBit2.Q CUnit/StateBit1.Q CUnit>PAUSel0
+-----010100000011-0-0-- 1
+-----100000000011-0-0-- 1
+-----0000000--01111-0-- 1
+-----000000--10-011-0-- 1
+----1--------0-0-00-1-- 1
+---1---------1-0-000--- 1
+-0-----------0111-0-1-- 1
+--01----------101-101-- 1
+--11---------1-0-0-01-- 1
+---0---------1-01-00--- 1
+-------------1-00001--- 1
+0------------1-11-101-- 1
+-0--0--------01-1-0-1-- 1
+-------------00-1000--- 1
+-------------010010-1-- 1
+-------------10---100-- 1
+-------------10-1--01-- 1
+-----1000000011-11000-- 1
+-----0-0000000-1100---- 1
+--000--------011-0101-- 1
+---11--------011-0101-- 1
+--10---------0111-101-- 1
+--00---------1-0-0101-- 1
+--11---------01--0101-- 1
+--01---------01-1-101-- 1
+1------------111-0101-- 1
+--------------1011110-- 1
+--0----------0101-101-- 1
+----1--------0111-101-- 1
+-------------01101-00-- 1
+--10---------1-01--01-- 1
+--------------0111100-- 1
+----1--------111-00-1-- 1
+--1----------0-0-0101-- 1
+-------------0-1010-0-- 1
+-1-----------01--00-1-- 1
+----0--------1-11-0-1-- 1
+-------------0-0--110-- 1
+-------------101--1-0-- 1
+-------------100-00---- 1
+-------------1-0--000-- 1
+--------------00-000--- 1
+--------------00-0-01-- 1
+-------------0-1--01--- 1
+----------------10-01-- 1
+------------------011-- 1
+---------------------10 1
+---------------------01 1
+-----1-------1-00-11-00 0
+-----1-------1-00-11-11 0
+-----1--1----0--1100000 0
+-----1--1----0--1100011 0
+------1------1-00-11-00 0
+------1------1-00-11-11 0
+-----1-------01-1--0000 0
+-----1-------01-1--0011 0
+-----00--------11100000 0
+-----00--------11100011 0
+------1-0------11100000 0
+------1-0------11100011 0
+-------1-----1-00-11-00 0
+-------1-----1-00-11-11 0
+-------1-----0--1100000 0
+-------1-----0--1100011 0
+-------1------111--0000 0
+-------1------111--0011 0
+--------1----1-00-11-00 0
+--------1----1-00-11-11 0
+---------1---0--1100000 0
+---------1---0--1100011 0
+--010--------0-10-1-100 0
+--010--------0-10-1-111 0
+--10---------0-1001--00 0
+--10---------0-1001--11 0
+--110--------0---11-100 0
+--110--------0---11-111 0
+--000--------0-1-11-100 0
+--000--------0-1-11-111 0
+--------1-----111--0000 0
+--------1-----111--0011 0
+---------1---1-00-11-00 0
+---------1---1-00-11-11 0
+----------1--0--1100000 0
+----------1--0--1100011 0
+-0-----------0-10000-00 0
+-0-----------0-10000-11 0
+---01--------0-1001--00 0
+---01--------0-1001--11 0
+---------1----111--0000 0
+---------1----111--0011 0
+----------1--1-00-11-00 0
+----------1--1-00-11-11 0
+--01----------100-10-00 0
+--01----------100-10-11 0
+--10---------1100-1--00 0
+--10---------1100-1--11 0
+-----------1-0--1100000 0
+-----------1-0--1100011 0
+--00---------110-110-00 0
+--00---------110-110-11 0
+--1----------0-0-110-00 0
+--1----------0-0-110-11 0
+0------------1110-1--00 0
+0------------1110-1--11 0
+----------1---111--0000 0
+----------1---111--0011 0
+--11----------10-110-00 0
+--11----------10-110-11 0
+------------10--1100000 0
+------------10--1100011 0
+-------------11-1-01000 0
+-------------11-1-01011 0
+-------------1001-11-00 0
+-------------1001-11-11 0
+-------------1-10-0-000 0
+-------------1-10-0-011 0
+--0----------0100-10-00 0
+--0----------0100-10-11 0
+-1-----------01-1100-00 0
+-1-----------01-1100-11 0
+-----------1--111--0000 0
+-----------1--111--0011 0
+-------------0-1-01-000 0
+-------------0-1-01-011 0
+-------------010--0-000 0
+-------------010--0-011 0
+------------1-111--0000 0
+------------1-111--0011 0
+--------------010--0100 0
+--------------010--0111 0
+--------------0-01-0100 0
+--------------0-01-0111 0
+-------------1-1-00-000 0
+-------------1-1-00-011 0
+-------------0010-1--00 0
+-------------0010-1--11 0
+-------------0-100-0000 0
+-------------0-100-0011 0
+-------------0-0-10-000 0
+---------------101-0100 0
+-------------0-0-10-011 0
+---------------101-0111 0
+-------------1---101000 0
+-------------1---101011 0
+-------------11-0-1-000 0
+-------------11-0-1-011 0
+--------------11--11-00 0
+--------------11--11-11 0
+-------------0-0--10000 0
+-------------0-0--10011 0
+--------------1-1-10000 0
+--------------1-1-10011 0
+-0--0--------01-0000-00 0
+-0--0--------01-0000-11 0
+---0---------1100-00100 0
+---0---------1100-00111 0
+---1---------110-100100 0
+---1---------110-100111 0
+----1--------111-100100 0
+----1--------111-100111 0
+----1--------0-01100-00 0
+----1--------0-01100-11 0
+1------------111-11--00 0
+1------------111-11--11 0
+----0--------1-10-00-00 0
+----0--------1-10-00-11 0
+-------------1-0-011-00 0
+-------------1-0-011-11 0
+-------------00--1-0100 0
+-------------00--1-0111 0
+-----------1-0-1--11-00 0
+------1------0-1--11-00 0
+-----------1-0-1--11-11 0
+------1------0-1--11-11 0
+----------1--0-1--11-00 0
+---------1---0-1--11-00 0
+--------1----0-1--11-00 0
+-------1-----0-1--11-00 0
+-----1-------0-1--11-00 0
+----------1--0-1--11-11 0
+---------1---0-1--11-11 0
+--------1----0-1--11-11 0
+-------1-----0-1--11-11 0
+-----1-------0-1--11-11 0
+-------------101--0-000 0
+-------------101--0-011 0
+-------------0-0--01000 0
+-------------0-0--01011 0
+------------------11100 0
+------------------11111 0
+.names Flags5.BLIF Flags3.BLIF Flags2.BLIF Flags1.BLIF Flags0.BLIF \
+CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF \
+CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit/StateBit2.Q \
+CUnit/StateBit1.Q CUnit/StateBit0.Q CUnit>PAUSel1
+--00101-00101--- 1
+--11--1011101--- 1
+--00001111101--- 1
+--11001-11101--- 1
+--01001-00101--- 1
+--00-11011101--- 1
+--10-01100101--- 1
+1----11111101--- 1
+0----11100101--- 1
+--10-11000-01--- 1
+--01--1000101--- 1
+--1--01011101--- 1
+----1111110-1--- 1
+-0--001-000-1--- 1
+--0--01000101--- 1
+-0---011000-1--- 1
+----0111000-1--- 1
+----1010110-1--- 1
+---1-110110-1--- 1
+---0-110000-1--- 1
+-1---01-110-1--- 1
+-------------010 1
+----------011--- 1
+--11-0--0-1--1-- 0
+--01-0---11--1-- 0
+--0000-10-1--1-- 0
+--0--0-0-11--1-- 0
+----10-00-00-1-- 0
+-0---0-1-100-1-- 0
+--11-0--0-1---0- 0
+--0-10---11--1-- 0
+--01-0---11---0- 0
+--10-1-0-11--1-- 0
+--00-1-00-1--1-- 0
+--0000-10-1---0- 0
+--1--0-00-1--1-- 0
+--0--0-0-11---0- 0
+--10-0-1-11--1-- 0
+--11-0--0-1----1 0
+----10-00-00--0- 0
+-0---0-1-100--0- 0
+-0--00---100-1-- 0
+----11-10-00-1-- 0
+--01-0---11----1 0
+---1-1-00-00-1-- 0
+1----1-10-1--1-- 0
+--0000-10-1----1 0
+----01-1-100-1-- 0
+0----1-1-11--1-- 0
+--11---00-1--1-- 0
+--0--0-0-11----1 0
+---0-1-0-100-1-- 0
+--01---0-11--1-- 0
+----10-00-00---1 0
+--0-10---11---0- 0
+-0---0-1-100---1 0
+--10-1-0-11---0- 0
+--00-1-00-1---0- 0
+--1--0-00-1---0- 0
+--10-0-1-11---0- 0
+-1---0--0-00-1-- 0
+--0-10---11----1 0
+-0--00---100--0- 0
+----11-10-00--0- 0
+--10-1-0-11----1 0
+--00-1-00-1----1 0
+---1-1-00-00--0- 0
+1----1-10-1---0- 0
+--1--0-00-1----1 0
+----01-1-100--0- 0
+0----1-1-11---0- 0
+--11---00-1---0- 0
+--10-0-1-11----1 0
+---0-1-0-100--0- 0
+--01---0-11---0- 0
+-0--00---100---1 0
+----11-10-00---1 0
+---1-1-00-00---1 0
+1----1-10-1----1 0
+----01-1-100---1 0
+0----1-1-11----1 0
+--11---00-1----1 0
+---0-1-0-100---1 0
+--01---0-11----1 0
+-1---0--0-00--0- 0
+--------10-0-1-- 0
+-1---0--0-00---1 0
+--------10-0--0- 0
+--------10-0---1 0
+---110-1--1---0- 0
+---110-1--1--1-- 0
+---110-1--1----1 0
+------0----0--0- 0
+------0----0-1-- 0
+----------11--0- 0
+----------11-1-- 0
+------0----0---1 0
+----------11---1 0
+------------0-0- 0
+------------01-- 0
+------------0--1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit2.Q CUnit/StateBit1.Q \
+CUnit/StateBit0.Q CUnit/StateBit2.REG
+0000000000011111-00 1
+----------------100 1
+---------------00-- 0
+--------------0-0-- 0
+-------------0--0-- 0
+------------0---0-- 0
+-----------0----0-- 0
+----------1-----0-- 0
+---------1------0-- 0
+--------1-------0-- 0
+-------1--------0-- 0
+------1---------0-- 0
+-----1----------0-- 0
+----1-----------0-- 0
+---1------------0-- 0
+--1-------------0-- 0
+-1--------------0-- 0
+1---------------0-- 0
+-----------------1- 0
+------------------1 0
+.names CUnit/StateBit2.Q CUnit/StateBit1.Q CUnit/StateBit0.Q \
+CUnit/StateBit1.REG
+010 1
+001 1
+-00 0
+-11 0
+1-- 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit/StateBit2.Q \
+CUnit/StateBit1.Q CUnit/StateBit0.Q CUnit/StateBit0.REG
+1110-0 1
+---100 1
+---010 1
+--000- 0
+-0-00- 0
+0--00- 0
+---11- 0
+-----1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q CUnit/HoldIR
+000000000001111100- 1
+111-------------00- 1
+----------------100 1
+----------------010 1
+----------------001 1
+01--------------000 0
+0--1------------000 0
+0---1-----------000 0
+0----1----------000 0
+0-----1---------000 0
+0------1--------000 0
+0-------1-------000 0
+0--------1------000 0
+0---------1-----000 0
+0----------0----000 0
+1-0-------------000 0
+-01-------------000 0
+0-----------0---000 0
+0------------0--000 0
+0-------------0-000 0
+0--------------0000 0
+----------------11- 0
+-----------------11 0
+----------------1-1 0
+.names DAUnit>SReg1.BLIF DAUnit/IncDecOut1.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg1.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg2.BLIF DAUnit/IncDecOut2.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg2.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg3.BLIF DAUnit/IncDecOut3.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg3.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg4.BLIF DAUnit/IncDecOut4.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg4.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg5.BLIF DAUnit/IncDecOut5.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg5.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg6.BLIF DAUnit/IncDecOut6.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg6.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>SReg7.BLIF DAUnit/IncDecOut7.BLIF DAUnit>UpdateS.BLIF \
+DAUnit>SReg7.REG
+1-0 1
+-11 1
+0-0 0
+-01 0
+.names DAUnit>XReg1.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut1.BLIF \
+DAUnit>XReg1.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg2.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut2.BLIF \
+DAUnit>XReg2.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg3.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut3.BLIF \
+DAUnit>XReg3.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg4.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut4.BLIF \
+DAUnit>XReg4.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg5.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut5.BLIF \
+DAUnit>XReg5.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg6.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut6.BLIF \
+DAUnit>XReg6.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names DAUnit>XReg7.BLIF DAUnit>UpdateX.BLIF DAUnit/IncDecOut7.BLIF \
+DAUnit>XReg7.REG
+10- 1
+-11 1
+00- 0
+-10 0
+.names Accum7.BLIF DAUnit>XReg7.BLIF DAUnit>SReg7.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr7
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum6.BLIF DAUnit>XReg6.BLIF DAUnit>SReg6.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr6
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum5.BLIF DAUnit>XReg5.BLIF DAUnit>SReg5.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr5
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum4.BLIF DAUnit>XReg4.BLIF DAUnit>SReg4.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr4
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum3.BLIF DAUnit>XReg3.BLIF DAUnit>SReg3.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr3
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum2.BLIF DAUnit>XReg2.BLIF DAUnit>SReg2.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr2
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum1.BLIF DAUnit>XReg1.BLIF DAUnit>SReg1.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr1
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names Accum0.BLIF DAUnit>XReg0.BLIF DAUnit>SReg0.BLIF DAUnit>InputSel0.BLIF \
+DAUnit>InputSel1.BLIF DAUnit/SelectedAddr0
+-1-10 1
+--101 1
+1--11 1
+0--11 0
+--00- 0
+-0--0 0
+---00 0
+.names CUnit>IR6.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr6.BLIF DAUnit/IncDecOut6.BLIF DAUnit/AdderCarryIn6.BLIF \
+DAUnit/AdderCarryIn7
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names CUnit>IR5.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr5.BLIF DAUnit/IncDecOut5.BLIF DAUnit/AdderCarryIn5.BLIF \
+DAUnit/AdderCarryIn6
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names CUnit>IR4.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr4.BLIF DAUnit/IncDecOut4.BLIF DAUnit/AdderCarryIn4.BLIF \
+DAUnit/AdderCarryIn5
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names CUnit>IR3.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr3.BLIF DAUnit/IncDecOut3.BLIF DAUnit/AdderCarryIn3.BLIF \
+DAUnit/AdderCarryIn4
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names CUnit>IR2.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr2.BLIF DAUnit/IncDecOut2.BLIF DAUnit/AdderCarryIn2.BLIF \
+DAUnit/AdderCarryIn3
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names CUnit>IR1.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr1.BLIF DAUnit/IncDecOut1.BLIF DAUnit/AdderCarryIn1.BLIF \
+DAUnit/AdderCarryIn2
+111-1- 1
+1011-- 1
+-1--11 1
+-0-1-1 1
+1-1--1 1
+-10-0- 0
+01--0- 0
+-000-- 0
+00-0-- 0
+-1--00 0
+-0-0-0 0
+--0--0 0
+0----0 0
+.names PAUnit>PC0.BLIF PAUnit>Load.BLIF PAUnit/AddElement0.BLIF PAUnit>PC0.REG
+100 1
+-11 1
+0-1 1
+101 0
+-10 0
+0-0 0
+.names PAUnit>PC10.BLIF PAUnit>Load.BLIF PAUnit/AddElement10.BLIF \
+PAUnit/Carry10.BLIF PAUnit/Carry11
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC9.BLIF PAUnit>Load.BLIF PAUnit/AddElement9.BLIF \
+PAUnit/Carry9.BLIF PAUnit/Carry10
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC8.BLIF PAUnit>Load.BLIF PAUnit/AddElement8.BLIF \
+PAUnit/Carry8.BLIF PAUnit/Carry9
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC7.BLIF PAUnit>Load.BLIF PAUnit/AddElement7.BLIF \
+PAUnit/Carry7.BLIF PAUnit/Carry8
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC6.BLIF PAUnit>Load.BLIF PAUnit/AddElement6.BLIF \
+PAUnit/Carry6.BLIF PAUnit/Carry7
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC5.BLIF PAUnit>Load.BLIF PAUnit/AddElement5.BLIF \
+PAUnit/Carry5.BLIF PAUnit/Carry6
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC4.BLIF PAUnit>Load.BLIF PAUnit/AddElement4.BLIF \
+PAUnit/Carry4.BLIF PAUnit/Carry5
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC3.BLIF PAUnit>Load.BLIF PAUnit/AddElement3.BLIF \
+PAUnit/Carry3.BLIF PAUnit/Carry4
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC2.BLIF PAUnit>Load.BLIF PAUnit/AddElement2.BLIF \
+PAUnit/Carry2.BLIF PAUnit/Carry3
+101- 1
+10-1 1
+--11 1
+-10- 0
+0-0- 0
+-1-0 0
+0--0 0
+--00 0
+.names PAUnit>PC1.BLIF PAUnit>PC0.BLIF PAUnit>Load.BLIF \
+PAUnit/AddElement1.BLIF PAUnit/AddElement0.BLIF PAUnit/Carry2
+110-1 1
+-1011 1
+1-01- 1
+-0-0- 0
+00--- 0
+0--0- 0
+--1-- 0
+---00 0
+0---0 0
+.names PAUnit>PC12.BLIF CUnit>IR12.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset4.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement12
+--10-10 1
+-111--0 1
+--011-1 1
+1-00--1 1
+--10-0- 0
+-011--- 0
+--010-- 0
+0-00--- 0
+--0---0 0
+--1---1 0
+.names PAUnit>PC11.BLIF CUnit>IR11.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset3.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement11
+--10-10 1
+-111--0 1
+--011-1 1
+1-00--1 1
+--10-0- 0
+-011--- 0
+--010-- 0
+0-00--- 0
+--0---0 0
+--1---1 0
+.names PAUnit>PC10.BLIF CUnit>IR10.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset2.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement10
+--10-10 1
+-111--0 1
+--011-1 1
+1-00--1 1
+--10-0- 0
+-011--- 0
+--010-- 0
+0-00--- 0
+--0---0 0
+--1---1 0
+.names PAUnit>PC9.BLIF CUnit>IR9.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset1.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement9
+--10-10 1
+-111--0 1
+--011-1 1
+1-00--1 1
+--10-0- 0
+-011--- 0
+--010-- 0
+0-00--- 0
+--0---0 0
+--1---1 0
+.names PAUnit>PC8.BLIF CUnit>IR8.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset0.BLIF PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement8
+--10-10 1
+-111--0 1
+--011-1 1
+1-00--1 1
+--10-0- 0
+-011--- 0
+--010-- 0
+0-00--- 0
+--0---0 0
+--1---1 0
+.names PAUnit>PC7.BLIF CUnit>IR7.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset7.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement7
+-111-0 1
+1-01-1 1
+--1010 1
+--0011 1
+-0-1-0 0
+0--1-1 0
+---00- 0
+--0--0 0
+--1--1 0
+.names PAUnit>PC6.BLIF CUnit>IR7.BLIF DataDB6.BLIF CUnit>IR6.BLIF \
+CUnit>IR5.BLIF CUnit>IR4.BLIF CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF \
+CUnit>IR0.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF \
+CUnit>IR8.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement6
+-01-00000011111100000 1
+-01-00000011111000001 1
+--1------------10-110 1
+--1------------00-111 1
+1--------------01---1 1
+---1-----------1---00 1
+---1-----------1--0-0 1
+---1-----------11---0 1
+---1-----------00--01 1
+---1-----------00-0-1 1
+-1-0------------0-0-- 0
+---01-----------0-0-- 0
+---0-1----------0-0-- 0
+---0--1---------0-0-- 0
+---0---1--------0-0-- 0
+---0----1-------0-0-- 0
+---0-----1------0-0-- 0
+0---------------1---1 0
+---0------0-----0-0-- 0
+---0------------1---0 0
+---0-------0----0-0-- 0
+---0--------0---0-0-- 0
+---0---------0--0-0-- 0
+---0----------0-0-0-- 0
+---0------------010-- 0
+--0-------------0-11- 0
+---0------------0-10- 0
+---0------------0-01- 0
+--00------------0---- 0
+---------------0----0 0
+---------------1----1 0
+.names PAUnit>PC5.BLIF CUnit>IR7.BLIF CUnit>IR6.BLIF DataDB5.BLIF \
+CUnit>IR5.BLIF CUnit>IR4.BLIF CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF \
+CUnit>IR0.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF \
+CUnit>IR8.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement5
+-001-0000011111100000 1
+-001-0000011111000001 1
+---1-----------10-110 1
+---1-----------00-111 1
+1--------------01---1 1
+----1----------1---00 1
+----1----------1--0-0 1
+----1----------11---0 1
+----1----------00--01 1
+----1----------00-0-1 1
+-1--0-----------0-0-- 0
+--1-0-----------0-0-- 0
+----01----------0-0-- 0
+----0-1---------0-0-- 0
+----0--1--------0-0-- 0
+----0---1-------0-0-- 0
+----0----1------0-0-- 0
+0---------------1---1 0
+----0-----0-----0-0-- 0
+----0-----------1---0 0
+----0------0----0-0-- 0
+----0-------0---0-0-- 0
+----0--------0--0-0-- 0
+----0---------0-0-0-- 0
+----0-----------010-- 0
+---0------------0-11- 0
+----0-----------0-10- 0
+----0-----------0-01- 0
+---00-----------0---- 0
+---------------0----0 0
+---------------1----1 0
+.names PAUnit>PC4.BLIF CUnit>IR4.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset4.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement4
+-111-0 1
+1-01-1 1
+--1010 1
+--0011 1
+-0-1-0 0
+0--1-1 0
+---00- 0
+--0--0 0
+--1--1 0
+.names PAUnit>PC3.BLIF CUnit>IR3.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset3.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement3
+-111-0 1
+1-01-1 1
+--1010 1
+--0011 1
+-0-1-0 0
+0--1-1 0
+---00- 0
+--0--0 0
+--1--1 0
+.names PAUnit>PC2.BLIF CUnit>IR2.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset2.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement2
+-111-0 1
+1-01-1 1
+--1010 1
+--0011 1
+-0-1-0 0
+0--1-1 0
+---00- 0
+--0--0 0
+--1--1 0
+.names PAUnit>PC1.BLIF CUnit>IR1.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset1.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement1
+-111-0 1
+1-01-1 1
+--1010 1
+--0011 1
+-0-1-0 0
+0--1-1 0
+---00- 0
+--0--0 0
+--1--1 0
+.names PAUnit>PC0.BLIF CUnit>IR0.BLIF CUnit>PAUSel1.BLIF CUnit>PAUSel0.BLIF \
+PAUnit>Offset0.BLIF PAUnit>Sel2.BLIF PAUnit/AddElement0
+--1010 1
+-1-1-0 1
+--0011 1
+1-01-- 1
+--01-0 1
+-011-- 0
+0--1-1 0
+--00-0 0
+---00- 0
+--1--1 0
+.names PAUnit>PC12.BLIF ProgramAB12
+1 1
+0 0
+.names PAUnit>PC11.BLIF ProgramAB11
+1 1
+0 0
+.names PAUnit>PC10.BLIF ProgramAB10
+1 1
+0 0
+.names PAUnit>PC9.BLIF ProgramAB9
+1 1
+0 0
+.names PAUnit>PC8.BLIF ProgramAB8
+1 1
+0 0
+.names PAUnit>PC7.BLIF ProgramAB7
+1 1
+0 0
+.names PAUnit>PC6.BLIF ProgramAB6
+1 1
+0 0
+.names PAUnit>PC5.BLIF ProgramAB5
+1 1
+0 0
+.names PAUnit>PC4.BLIF ProgramAB4
+1 1
+0 0
+.names PAUnit>PC3.BLIF ProgramAB3
+1 1
+0 0
+.names PAUnit>PC2.BLIF ProgramAB2
+1 1
+0 0
+.names PAUnit>PC1.BLIF ProgramAB1
+1 1
+0 0
+.names PAUnit>PC0.BLIF ProgramAB0
+1 1
+0 0
+.names CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF \
+CUnit>IR8.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF IO
+1000001 1
+-----1- 0
+----1-- 0
+---1--- 0
+--1---- 0
+-1----- 0
+0------ 0
+------0 0
+.names ALUnit>Accum7.BLIF Accum7
+1 1
+0 0
+.names ALUnit>Accum6.BLIF Accum6
+1 1
+0 0
+.names ALUnit>Accum5.BLIF Accum5
+1 1
+0 0
+.names ALUnit>Accum4.BLIF Accum4
+1 1
+0 0
+.names ALUnit>Accum3.BLIF Accum3
+1 1
+0 0
+.names ALUnit>Accum2.BLIF Accum2
+1 1
+0 0
+.names ALUnit>Accum1.BLIF Accum1
+1 1
+0 0
+.names ALUnit>Accum0.BLIF Accum0
+1 1
+0 0
+.names ALUnit>Flags7.BLIF Flags7
+1 1
+0 0
+.names ALUnit>Flags6.BLIF Flags6
+1 1
+0 0
+.names ALUnit>Flags5.BLIF Flags5
+1 1
+0 0
+.names ALUnit>Flags4.BLIF Flags4
+1 1
+0 0
+.names ALUnit>Flags3.BLIF Flags3
+1 1
+0 0
+.names ALUnit>Flags2.BLIF Flags2
+1 1
+0 0
+.names ALUnit>Flags1.BLIF Flags1
+1 1
+0 0
+.names ALUnit>Flags0.BLIF Flags0
+1 1
+0 0
+.names DAUnit>XReg7.BLIF XReg7
+1 1
+0 0
+.names DAUnit>XReg6.BLIF XReg6
+1 1
+0 0
+.names DAUnit>XReg5.BLIF XReg5
+1 1
+0 0
+.names DAUnit>XReg4.BLIF XReg4
+1 1
+0 0
+.names DAUnit>XReg3.BLIF XReg3
+1 1
+0 0
+.names DAUnit>XReg2.BLIF XReg2
+1 1
+0 0
+.names DAUnit>XReg1.BLIF XReg1
+1 1
+0 0
+.names DAUnit>XReg0.BLIF XReg0
+1 1
+0 0
+.names DAUnit>SReg7.BLIF SReg7
+1 1
+0 0
+.names DAUnit>SReg6.BLIF SReg6
+1 1
+0 0
+.names DAUnit>SReg5.BLIF SReg5
+1 1
+0 0
+.names DAUnit>SReg4.BLIF SReg4
+1 1
+0 0
+.names DAUnit>SReg3.BLIF SReg3
+1 1
+0 0
+.names DAUnit>SReg2.BLIF SReg2
+1 1
+0 0
+.names DAUnit>SReg1.BLIF SReg1
+1 1
+0 0
+.names DAUnit>SReg0.BLIF SReg0
+1 1
+0 0
+.names CUnit>debug.BLIF debug
+1 1
+0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q CUnit/StateBit2.Q \
+DAUnit>Dec
+00-000000001110--- 1
+000-------10110--- 1
+-01-------01-1---- 1
+---------------100 1
+---------------010 1
+--01------0----00- 0
+--01------0----11- 0
+--0-1-----0----00- 0
+--0-1-----0----11- 0
+--01------0------1 0
+--0--1----0----00- 0
+--0--1----0----11- 0
+--0-1-----0------1 0
+--0---1---0----00- 0
+--0---1---0----11- 0
+--1-------1----00- 0
+--1-------1----11- 0
+--0--1----0------1 0
+--0----1--0----00- 0
+--0----1--0----11- 0
+--0-----1-0----00- 0
+--0-----1-0----11- 0
+--0---1---0------1 0
+--0------10----00- 0
+--0------10----11- 0
+--1-------1------1 0
+--0----1--0------1 0
+--0-----1-0------1 0
+--0------10------1 0
+----------11---00- 0
+----------11---11- 0
+----------00---00- 0
+----------00---11- 0
+--0-----------100- 0
+--0---------0--00- 0
+1-0------------00- 0
+--0-----------111- 0
+--0---------0--11- 0
+1-0------------11- 0
+-------------0-00- 0
+-1-------------00- 0
+-------------0-11- 0
+-1-------------11- 0
+----------11-----1 0
+----------00-----1 0
+--0-----------1--1 0
+--0---------0----1 0
+1-0--------------1 0
+-------------0---1 0
+-1---------------1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q DAUnit>Inc
+000000000001111100- 1
+000--------10100--- 1
+00---------01-00--- 1
+-01--------01-0---- 1
+----------------001 1
+---1----------1---0 0
+----1---------1---0 0
+-----1--------1---0 0
+------1-------1---0 0
+-------1------1---0 0
+--------1-----1---0 0
+---------1----1---0 0
+----------1---1---0 0
+--1--------1----1-- 0
+--1--------1-----1- 0
+-----------1-0--1-- 0
+-----------1-0---1- 0
+-----------11--0--0 0
+------------0-1---0 0
+--0-----------01--0 0
+-----------0--1---0 0
+--1--------1------0 0
+-----------1-0----0 0
+-----------00----1- 0
+-----------00---1-- 0
+1-0--------------1- 0
+1-0-------------1-- 0
+--0------------1-1- 0
+--0------------11-- 0
+-----------11----1- 0
+-----------11---1-- 0
+-1---------------1- 0
+-1--------------1-- 0
+-----------00-----0 0
+1-0---------------0 0
+--------------1--1- 0
+--------------1-1-- 0
+-1----------------0 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF CUnit>IR12.BLIF \
+CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF DAUnit>InputSel0
+--------10001-00 1
+10000000001-1000 1
+01010000001-1000 1
+--------0-001110 1
+--------1011--01 1
+----------110-01 1
+--------1-001000 1
+--------101011-0 1
+--------0-1010-0 1
+0--0-------1---0 0
+-0-1-------1---0 0
+11---------1---0 0
+-----------1-1-0 0
+--1--------1---0 0
+----1------1---0 0
+--------0-0---0- 0
+-----1-----1---0 0
+--------11-0-1-- 0
+--------0-0--0-- 0
+------1----1---0 0
+-------1---1---0 0
+--------1-1--0-0 0
+--------0-1--1-0 0
+---------1-11--- 0
+----------01---- 0
+--------1-0---1- 0
+--------0---1--1 0
+-----------1--1- 0
+-----------0---1 0
+------------0--0 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q DAUnit>InputSel1
+0000000000011111--0 1
+-0---------01001--- 1
+000--------01-00--- 1
+111---------------0 1
+----------------1-0 1
+00000001010-1100--- 1
+00000000001-1100--- 1
+0-0000000-0011-0--- 1
+110--------010-0--- 1
+1-0--------01101--- 1
+010--------011-0--- 1
+-01---------1001--- 1
+00---------010-1--- 1
+-01--------010----- 1
+-----------------01 1
+-----------------10 1
+--0----1--11----000 0
+-------1--11---0-11 0
+-------0-1-1---0-11 0
+-0-1---------11--11 0
+---------001---0-11 0
+-0-------001---0000 0
+--0----0-1-1----000 0
+-0--1--------11--11 0
+-0-1---------11-000 0
+--01-------1----000 0
+-0---1-------11--11 0
+-0--1--------11-000 0
+-----------1-0-0-11 0
+-0----1------11--11 0
+--0-1------1----000 0
+-0---1-------11-000 0
+---1-------1---0-11 0
+-0-----1-----11--11 0
+--0--1-----1----000 0
+-0----1------11-000 0
+-0------1----11--11 0
+----1------1---0-11 0
+--0---1----1----000 0
+-0-----1-----11-000 0
+--0-----1--1----000 0
+-0--------1--11--11 0
+-00----------010000 0
+-----1-----1---0-11 0
+-0------1----11-000 0
+1-0-----------11-11 0
+-00----------010-11 0
+-0---------1-01-000 0
+------1----1---0-11 0
+1-0-----------11000 0
+0-1----------1--000 0
+0----------0-1-1000 0
+-0--------1--11-000 0
+--0--------1--01000 0
+--------1--1---0-11 0
+--0--------1---1-11 0
+-0---------1-0-0000 0
+-10--------1----000 0
+-10----------0-1000 0
+1-0----------1-0000 0
+100------------0000 0
+01-----------0--000 0
+100------------0-11 0
+-01----------1--000 0
+01-----------0---11 0
+-1-----------0-1-11 0
+0------------1-1-11 0
+1------------1-0-11 0
+--0---------0---000 0
+-0----------0---000 0
+-11--------------11 0
+--1----------1---11 0
+-1---------1-----11 0
+-----------1--1--11 0
+------------0----11 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF CUnit>IR11.BLIF \
+CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q CUnit/StateBit2.Q \
+DAUnit>PrePostAdd
+00-0000000011-0--- 1
+000-------101-0--- 1
+00--------01100--- 1
+-01-------01--0--- 1
+---------------100 1
+---------------010 1
+--01------0--1-00- 0
+--01------0--1-11- 0
+--0-1-----0--1-00- 0
+--0-1-----0--1-11- 0
+--01------0--1---1 0
+--0--1----0--1-00- 0
+--0--1----0--1-11- 0
+--0-1-----0--1---1 0
+--0---1---0--1-00- 0
+--0---1---0--1-11- 0
+--1-------1----00- 0
+--1-------1----11- 0
+--0--1----0--1---1 0
+--0----1--0--1-00- 0
+--0----1--0--1-11- 0
+--0-----1-0--1-00- 0
+--0-----1-0--1-11- 0
+--0---1---0--1---1 0
+--0------10--1-00- 0
+--0------10--1-11- 0
+--1-------1------1 0
+--0----1--0--1---1 0
+--0-----1-0--1---1 0
+--0------10--1---1 0
+----------11---00- 0
+----------11---11- 0
+----------00---00- 0
+----------00---11- 0
+--0---------0--00- 0
+1-0------------00- 0
+--0---------0--11- 0
+1-0------------11- 0
+--------------100- 0
+-1-------------00- 0
+--------------111- 0
+-1-------------11- 0
+----------11-----1 0
+----------00-----1 0
+--0---------0----1 0
+1-0--------------1 0
+--------------1--1 0
+-1---------------1 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q DAUnit>UpdateS
+0000000000011111--0 1
+-0---------01001--- 1
+000--------01-00--- 1
+111---------------0 1
+----------------1-0 1
+00000001010-1100--- 1
+0-0000000-0011-0--- 1
+110--------010-0--- 1
+1-0--------01101--- 1
+010--------011-0--- 1
+-01---------1001--- 1
+00---------010-1--- 1
+-01--------010----- 1
+-----------------01 1
+-----------------10 1
+--01-------1----000 0
+-----------1-0-0-11 0
+-0-1---------11--11 0
+--0-1------1----000 0
+---1-------1---0-11 0
+-0-1---------11-000 0
+-0--1--------11--11 0
+--0--1-----1----000 0
+-0---1-------11--11 0
+--0---1----1----000 0
+----1------1---0-11 0
+-0--1--------11-000 0
+--0-----1--1----000 0
+-0----1------11--11 0
+-----1-----1---0-11 0
+-0---1-------11-000 0
+--0-------11----000 0
+-0------1----11--11 0
+------1----1---0-11 0
+-0----1------11-000 0
+-0--------1--11--11 0
+--------1--1---0-11 0
+-0------1----11-000 0
+----------11---0-11 0
+-0--------1--11-000 0
+-00----------010000 0
+-0-----1-----11--11 0
+-00----------010-11 0
+1-0-----------11-11 0
+-0---------1-01-000 0
+0----------0-1-1000 0
+0-1----------1--000 0
+1-0-----------11000 0
+-------0---1---0-11 0
+-0-----1-----11-000 0
+-0---------1-0-0000 0
+--0------0-1--0-000 0
+--0------1-1---1000 0
+---------0-1---0-11 0
+--0--------1---1-11 0
+-10--------1----000 0
+-0-----0---1---0000 0
+-10----------0-1000 0
+1-0----------1-0000 0
+100------------0000 0
+01-----------0--000 0
+100------------0-11 0
+-01----------1--000 0
+01-----------0---11 0
+-1-----------0-1-11 0
+0------------1-1-11 0
+1------------1-0-11 0
+--0---------0---000 0
+-0----------0---000 0
+-11--------------11 0
+--1----------1---11 0
+-1---------1-----11 0
+-----------1--1--11 0
+------------0----11 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR1.BLIF CUnit>IR0.BLIF CUnit>IR12.BLIF \
+CUnit>IR11.BLIF CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF \
+CUnit>IR14.BLIF CUnit>IR15.BLIF DAUnit>UpdateX
+--------10001-00 1
+10000000001-1000 1
+--------0-001110 1
+--------1011--01 1
+----------110-01 1
+--------1-001000 1
+--------101011-0 1
+--------0-1010-0 1
+--------1--1---0 0
+0----------1---0 0
+-1---------1---0 0
+--1--------1---0 0
+---1-------1---0 0
+--------0-10-1-- 0
+----1------1---0 0
+--------1-10-0-- 0
+--------11-0-1-- 0
+-----1-----1---0 0
+--------0-0--0-- 0
+------1----1---0 0
+----------01---- 0
+-------1---1---0 0
+--------0----100 0
+---------1-11--- 0
+--------1-0---1- 0
+--------0---1--1 0
+-----------1--1- 0
+-----------0---1 0
+------------0--0 0
+.names CUnit>IR7.BLIF CUnit>IR6.BLIF CUnit>IR5.BLIF CUnit>IR4.BLIF \
+CUnit>IR3.BLIF CUnit>IR2.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF CUnit>IR10.BLIF \
+CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF \
+DAUnit>UseOffset
+00000010-011-0 1
+------1-01000- 1
+------100-0-0- 1
+------10-0-100 1
+------00111100 1
+------0-10-010 1
+------0-1-0010 1
+------100100-0 1
+------0-00-110 1
+------0-0-0110 1
+------1010-1-0 1
+------1-00-000 1
+------101-01-0 1
+------10-1--01 1
+-------00-0-01 1
+---------10-01 1
+1-----1-0-1-1- 0
+-1----1-0-1-1- 0
+--1---1-0-1-1- 0
+---1--1-0-1-1- 0
+----1-1-0-1-1- 0
+-----11-0-1-1- 0
+------11----1- 0
+------1-1--01- 0
+---------11-1- 0
+------1-0-011- 0
+-------1-11--- 0
+------0--01-0- 0
+--------011--0 0
+------0-1--11- 0
+--------1--000 0
+------0---0-00 0
+------0-0--01- 0
+------1--0-01- 0
+------11---1-0 0
+------1--11--0 0
+------0---1--1 0
+--------10---1 0
+-------1-0---1 0
+---------01--1 0
+------------11 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q PAUnit>Load
+00000000000111110-0 1
+011---------------- 1
+----------------001 1
+----------------010 1
+-0-1-------------00 0
+-0--1------------00 0
+-0---1-----------00 0
+-0----1----------00 0
+-0-----1---------00 0
+-0------1--------00 0
+-0-------1-------00 0
+-0--------1------00 0
+-0---------0-----00 0
+-0----------0----00 0
+-0-----------0---00 0
+-0------------0--00 0
+-0-------------0-00 0
+--0--------------11 0
+1----------------11 0
+-10--------------00 0
+--0-------------1-- 0
+1---------------1-- 0
+-0---------------11 0
+-01--------------00 0
+-0--------------1-- 0
+1----------------00 0
+.names CUnit>IR13.BLIF CUnit>IR14.BLIF CUnit>IR15.BLIF CUnit>IR0.BLIF \
+CUnit>IR1.BLIF CUnit>IR2.BLIF CUnit>IR3.BLIF CUnit>IR4.BLIF CUnit>IR5.BLIF \
+CUnit>IR6.BLIF CUnit>IR7.BLIF CUnit>IR8.BLIF CUnit>IR9.BLIF CUnit>IR10.BLIF \
+CUnit>IR11.BLIF CUnit>IR12.BLIF CUnit/StateBit0.Q CUnit/StateBit1.Q \
+CUnit/StateBit2.Q PAUnit>Sel2
+000000000001111100- 1
+----------------001 1
+-----------------1- 0
+----------------1-- 0
+---------------0--0 0
+--------------0---0 0
+-------------0----0 0
+------------0-----0 0
+-----------0------0 0
+----------1-------0 0
+---------1--------0 0
+--------1---------0 0
+-------1----------0 0
+------1-----------0 0
+-----1------------0 0
+----1-------------0 0
+---1--------------0 0
+--1---------------0 0
+-1----------------0 0
+1-----------------0 0
+.names WR.BLIF DataDB7.OE
+1 1
+0 0
+.names WR.BLIF DataDB6.OE
+1 1
+0 0
+.names WR.BLIF DataDB5.OE
+1 1
+0 0
+.names WR.BLIF DataDB4.OE
+1 1
+0 0
+.names WR.BLIF DataDB3.OE
+1 1
+0 0
+.names WR.BLIF DataDB2.OE
+1 1
+0 0
+.names WR.BLIF DataDB1.OE
+1 1
+0 0
+.names WR.BLIF DataDB0.OE
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum0.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum0.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum1.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum1.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum2.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum2.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum3.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum3.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum4.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum4.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum5.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum5.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum6.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum6.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Accum7.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Accum7.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags0.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags0.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags1.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags1.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags2.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags2.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags3.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags3.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags4.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags4.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags5.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags5.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags6.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags6.C
+1 1
+0 0
+.names Reset.BLIF ALUnit>Flags7.CLR
+1 1
+0 0
+.names Clock.BLIF ALUnit>Flags7.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR0.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR1.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR10.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR11.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR12.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR13.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR14.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR15.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR2.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR3.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR4.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR5.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR6.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR7.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR8.C
+1 1
+0 0
+.names Clock.BLIF CUnit>IR9.C
+1 1
+0 0
+.names Reset.BLIF CUnit/StateBit2.CLR
+1 1
+0 0
+.names Clock.BLIF CUnit/StateBit2.C
+1 1
+0 0
+.names Reset.BLIF CUnit/StateBit1.CLR
+1 1
+0 0
+.names Clock.BLIF CUnit/StateBit1.C
+1 1
+0 0
+.names Reset.BLIF CUnit/StateBit0.CLR
+1 1
+0 0
+.names Clock.BLIF CUnit/StateBit0.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg0.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg0.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg1.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg1.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg2.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg2.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg3.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg3.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg4.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg4.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg5.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg5.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg6.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg6.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>SReg7.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>SReg7.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg0.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg0.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg1.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg1.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg2.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg2.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg3.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg3.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg4.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg4.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg5.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg5.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg6.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg6.C
+1 1
+0 0
+.names Reset.BLIF DAUnit>XReg7.CLR
+1 1
+0 0
+.names Clock.BLIF DAUnit>XReg7.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC0.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC0.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC1.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC1.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC10.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC10.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC11.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC11.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC12.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC12.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC2.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC2.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC3.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC3.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC4.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC4.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC5.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC5.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC6.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC6.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC7.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC7.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC8.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC8.C
+1 1
+0 0
+.names Reset.BLIF PAUnit>PC9.CLR
+1 1
+0 0
+.names Clock.BLIF PAUnit>PC9.C
+1 1
+0 0
+.names CUnit>IR7.BLIF DAUnit>UseOffset.BLIF DataAB7.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR7.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr7.BLIF DAUnit/IncDecOut7.BLIF DAUnit/AdderCarryIn7.BLIF \
+DataAB7.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR6.BLIF DAUnit>UseOffset.BLIF DataAB6.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR6.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr6.BLIF DAUnit/IncDecOut6.BLIF DAUnit/AdderCarryIn6.BLIF \
+DataAB6.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR5.BLIF DAUnit>UseOffset.BLIF DataAB5.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR5.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr5.BLIF DAUnit/IncDecOut5.BLIF DAUnit/AdderCarryIn5.BLIF \
+DataAB5.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR4.BLIF DAUnit>UseOffset.BLIF DataAB4.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR4.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr4.BLIF DAUnit/IncDecOut4.BLIF DAUnit/AdderCarryIn4.BLIF \
+DataAB4.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR3.BLIF DAUnit>UseOffset.BLIF DataAB3.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR3.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr3.BLIF DAUnit/IncDecOut3.BLIF DAUnit/AdderCarryIn3.BLIF \
+DataAB3.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR2.BLIF DAUnit>UseOffset.BLIF DataAB2.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR2.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr2.BLIF DAUnit/IncDecOut2.BLIF DAUnit/AdderCarryIn2.BLIF \
+DataAB2.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR1.BLIF DAUnit>UseOffset.BLIF DataAB1.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR1.BLIF DAUnit>PrePostAdd.BLIF DAUnit>UseOffset.BLIF \
+DAUnit/SelectedAddr1.BLIF DAUnit/IncDecOut1.BLIF DAUnit/AdderCarryIn1.BLIF \
+DataAB1.X2
+-0-0-1 1
+-0-1-0 1
+-1--01 1
+-1--10 1
+-0-1-1 0
+-1--11 0
+-0-0-0 0
+-1--00 0
+.names CUnit>IR0.BLIF DAUnit>UseOffset.BLIF DataAB0.X1
+11 1
+0- 0
+-0 0
+.names CUnit>IR0.BLIF DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit>PrePostAdd.BLIF \
+DAUnit>UseOffset.BLIF DAUnit/SelectedAddr0.BLIF DataAB0.X2
+-011-0 1
+-101-0 1
+-00--1 1
+---0-1 1
+-11--1 1
+---0-0 0
+-11--0 0
+-00--0 0
+-011-1 0
+-101-1 0
+.names CUnit>ALUHold.BLIF CUnit>ALUAddShift.BLIF ALUnit/CarryIn0.BLIF \
+ALUnit>Accum0.REG.X1
+000 1
+1-- 0
+-1- 0
+--1 0
+.names CUnit>ALUHold.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum0.BLIF ALUnit/Fout0.BLIF ALUnit/CarryIn0.BLIF \
+ALUnit/ShiftRot0.BLIF ALUnit>Accum0.REG.X2
+001-0-- 1
+00-00-- 1
+-0011-- 1
+01----1 1
+1--1--- 1
+1--0--- 0
+-0-01-- 0
+01----0 0
+001-1-- 0
+00010-- 0
+.names CUnit>ALUAddShift.BLIF CUnit>ALUPopF.BLIF CUnit>ALUInvCarry.BLIF \
+CUnit>ALUCVUpdate.BLIF ALUnit>Flags3.REG.X1
+0001 1
+1--- 0
+-1-- 0
+--1- 0
+---0 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUAddSub.BLIF \
+CUnit>ALUPopF.BLIF CUnit>ALUInvCarry.BLIF CUnit>ALUCVUpdate.BLIF \
+ALUnit>Accum7.BLIF ALUnit>Accum0.BLIF ALUnit>Flags3.BLIF ALUnit>Data3.BLIF \
+ALUnit/CarryIn8.BLIF ALUnit>Flags3.REG.X2
+---0-0--1-- 1
+-000-1----1 1
+-010-1----0 1
+01-0-1-1--- 1
+11-0-11---- 1
+---1-----1- 1
+---1-----0- 0
+---0-0--0-- 0
+11-0-10---- 0
+01-0-1-0--- 0
+-010-1----1 0
+-000-1----0 0
+.names DAUnit>Dec.BLIF DAUnit>UpdateS.BLIF DAUnit>SReg0.REG.X1
+01 1
+1- 0
+-0 0
+.names DAUnit>SReg0.BLIF DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit>UpdateS.BLIF \
+DAUnit/SelectedAddr0.BLIF DAUnit>SReg0.REG.X2
+1--0- 1
+--010 1
+--111 1
+0--0- 0
+--011 0
+--110 0
+.names DAUnit>Dec.BLIF DAUnit>UpdateX.BLIF DAUnit>XReg0.REG.X1
+01 1
+1- 0
+-0 0
+.names DAUnit>XReg0.BLIF DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit>UpdateX.BLIF \
+DAUnit/SelectedAddr0.BLIF DAUnit>XReg0.REG.X2
+1--0- 1
+--010 1
+--111 1
+0--0- 0
+--011 0
+--110 0
+.names PAUnit/AddElement1.BLIF PAUnit>PC1.REG.X1
+1 1
+0 0
+.names PAUnit>PC1.BLIF PAUnit>PC0.BLIF PAUnit>Load.BLIF \
+PAUnit/AddElement1.BLIF PAUnit/AddElement0.BLIF PAUnit>PC1.REG.X2
+010-1 1
+100-- 1
+1-0-0 1
+--1-- 0
+00--- 0
+0---0 0
+11--1 0
+.names PAUnit/AddElement10.BLIF PAUnit>PC10.REG.X1
+0 1
+1 0
+.names PAUnit>PC10.BLIF PAUnit>Load.BLIF PAUnit/Carry10.BLIF \
+PAUnit/AddElement10.BLIF PAUnit>PC10.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement11.BLIF PAUnit>PC11.REG.X1
+0 1
+1 0
+.names PAUnit>PC11.BLIF PAUnit>Load.BLIF PAUnit/Carry11.BLIF \
+PAUnit/AddElement11.BLIF PAUnit>PC11.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement12.BLIF PAUnit>PC12.REG.X1
+1 1
+0 0
+.names PAUnit>PC12.BLIF PAUnit>PC11.BLIF PAUnit>Load.BLIF PAUnit/Carry11.BLIF \
+PAUnit/AddElement12.BLIF PAUnit/AddElement11.BLIF PAUnit>PC12.REG.X2
+0101-- 1
+010--1 1
+0--1-1 1
+1000-- 1
+100--0 1
+1-00-0 1
+--11-1 1
+--10-- 0
+--1--0 0
+00-0-- 0
+00---0 0
+0--0-0 0
+1101-- 0
+110--1 0
+1-01-1 0
+.names PAUnit/AddElement2.BLIF PAUnit>PC2.REG.X1
+0 1
+1 0
+.names PAUnit>PC2.BLIF PAUnit>Load.BLIF PAUnit/Carry2.BLIF \
+PAUnit/AddElement2.BLIF PAUnit>PC2.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement3.BLIF PAUnit>PC3.REG.X1
+0 1
+1 0
+.names PAUnit>PC3.BLIF PAUnit>Load.BLIF PAUnit/Carry3.BLIF \
+PAUnit/AddElement3.BLIF PAUnit>PC3.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement4.BLIF PAUnit>PC4.REG.X1
+0 1
+1 0
+.names PAUnit>PC4.BLIF PAUnit>Load.BLIF PAUnit/Carry4.BLIF \
+PAUnit/AddElement4.BLIF PAUnit>PC4.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement5.BLIF PAUnit>PC5.REG.X1
+0 1
+1 0
+.names PAUnit>PC5.BLIF PAUnit>Load.BLIF PAUnit/Carry5.BLIF \
+PAUnit/AddElement5.BLIF PAUnit>PC5.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement6.BLIF PAUnit>PC6.REG.X1
+0 1
+1 0
+.names PAUnit>PC6.BLIF PAUnit>Load.BLIF PAUnit/Carry6.BLIF \
+PAUnit/AddElement6.BLIF PAUnit>PC6.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement7.BLIF PAUnit>PC7.REG.X1
+0 1
+1 0
+.names PAUnit>PC7.BLIF PAUnit>Load.BLIF PAUnit/Carry7.BLIF \
+PAUnit/AddElement7.BLIF PAUnit>PC7.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement8.BLIF PAUnit>PC8.REG.X1
+0 1
+1 0
+.names PAUnit>PC8.BLIF PAUnit>Load.BLIF PAUnit/Carry8.BLIF \
+PAUnit/AddElement8.BLIF PAUnit>PC8.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names PAUnit/AddElement9.BLIF PAUnit>PC9.REG.X1
+0 1
+1 0
+.names PAUnit>PC9.BLIF PAUnit>Load.BLIF PAUnit/Carry9.BLIF \
+PAUnit/AddElement9.BLIF PAUnit>PC9.REG.X2
+0-0- 1
+-10- 1
+101- 1
+0-1- 0
+-11- 0
+100- 0
+.names CUnit>ALUAddSub.BLIF ALUnit/CarryIn0.X1
+0 1
+1 0
+.names CUnit>ALUAddSub.BLIF ALUnit>Flags3.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF \
+CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF CUnit>IR14.BLIF \
+CUnit>IR15.BLIF ALUnit/CarryIn0.X2
+-1000--110 1
+-110000010 1
+-1110--000 1
+-0-------- 0
+----1----- 0
+---------1 0
+--01------ 0
+--1----1-- 0
+--0----0-- 0
+---1----1- 0
+--0-----0- 0
+---0----0- 0
+--10-1---- 0
+--10--1--- 0
+.names ALUnit>Accum1.BLIF CUnit>IR9.BLIF ALUnit/ShiftRot0.X1
+11 1
+0- 0
+-0 0
+.names ALUnit>Accum7.BLIF ALUnit>Accum1.BLIF CUnit>IR12.BLIF CUnit>IR11.BLIF \
+CUnit>IR10.BLIF CUnit>IR9.BLIF CUnit>IR8.BLIF CUnit>IR13.BLIF CUnit>IR14.BLIF \
+CUnit>IR15.BLIF ALUnit/ShiftRot0.X2
+1010010010 1
+-1---0---- 1
+01100-0010 1
+00-------- 0
+-00------- 0
+-0-1------ 0
+-0--1----- 0
+--0--1---- 0
+---1-1---- 0
+----11---- 0
+-0---0---- 0
+-0----1--- 0
+-----11--- 0
+-0-----1-- 0
+-----1-1-- 0
+-0------0- 0
+-----1--0- 0
+-0-------1 0
+-----1---1 0
+11---1---- 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout7.BLIF ALUnit/AccOut7.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUHighSR2.BLIF CUnit>ALUHighSR1.BLIF CUnit>ALUHighSR0.BLIF \
+CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF ALUnit>Accum7.BLIF \
+ALUnit>Accum6.BLIF ALUnit>Accum0.BLIF ALUnit>Flags3.BLIF ALUnit/Fout7.BLIF \
+ALUnit/CarryIn7.BLIF ALUnit/AccOut7.X2
+---01-----0 1
+---0-0----0 1
+---001----1 1
+0011-1----- 1
+0101---1--- 1
+0111----1-- 1
+1--1--1---- 1
+1--1--0---- 0
+---01-----1 0
+---0-0----1 0
+0001------- 0
+00-1-0----- 0
+0-01---0--- 0
+---001----0 0
+0111----0-- 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout6.BLIF ALUnit/AccOut6.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum7.BLIF ALUnit>Accum6.BLIF ALUnit>Accum5.BLIF ALUnit/Fout6.BLIF \
+ALUnit/CarryIn6.BLIF ALUnit/AccOut6.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout5.BLIF ALUnit/AccOut5.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum6.BLIF ALUnit>Accum5.BLIF ALUnit>Accum4.BLIF ALUnit/Fout5.BLIF \
+ALUnit/CarryIn5.BLIF ALUnit/AccOut5.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout4.BLIF ALUnit/AccOut4.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum5.BLIF ALUnit>Accum4.BLIF ALUnit>Accum3.BLIF ALUnit/Fout4.BLIF \
+ALUnit/CarryIn4.BLIF ALUnit/AccOut4.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout3.BLIF ALUnit/AccOut3.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum4.BLIF ALUnit>Accum3.BLIF ALUnit>Accum2.BLIF ALUnit/Fout3.BLIF \
+ALUnit/CarryIn3.BLIF ALUnit/AccOut3.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout2.BLIF ALUnit/AccOut2.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum3.BLIF ALUnit>Accum2.BLIF ALUnit>Accum1.BLIF ALUnit/Fout2.BLIF \
+ALUnit/CarryIn2.BLIF ALUnit/AccOut2.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names CUnit>ALUAddShift.BLIF ALUnit/Fout1.BLIF ALUnit/AccOut1.X1
+00 1
+1- 0
+-1 0
+.names CUnit>ALUMidSR.BLIF CUnit>ALUAddShift.BLIF CUnit>ALUZeroAcc.BLIF \
+ALUnit>Accum2.BLIF ALUnit>Accum1.BLIF ALUnit>Accum0.BLIF ALUnit/Fout1.BLIF \
+ALUnit/CarryIn1.BLIF ALUnit/AccOut1.X2
+-01----0 1
+-0--0--0 1
+-00-1--1 1
+01-1---- 1
+11---1-- 1
+01-0---- 0
+11---0-- 0
+-01----1 0
+-0--0--1 0
+-00-1--0 0
+.names DAUnit/SelectedAddr7.BLIF DAUnit/IncDecOut7.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr7.BLIF \
+DAUnit/SelectedAddr6.BLIF DAUnit/SelectedAddr5.BLIF DAUnit/SelectedAddr4.BLIF \
+DAUnit/SelectedAddr3.BLIF DAUnit/SelectedAddr2.BLIF DAUnit/SelectedAddr1.BLIF \
+DAUnit/SelectedAddr0.BLIF DAUnit/IncDecOut7.X2
+01-1111111 1
+10-0000000 1
+11-------- 0
+00-------- 0
+1--1------ 0
+0--0------ 0
+1---1----- 0
+0---0----- 0
+1----1---- 0
+0----0---- 0
+1-----1--- 0
+0-----0--- 0
+1------1-- 0
+0------0-- 0
+1-------1- 0
+0-------0- 0
+1--------1 0
+0--------0 0
+.names DAUnit/SelectedAddr6.BLIF DAUnit/IncDecOut6.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr6.BLIF \
+DAUnit/SelectedAddr5.BLIF DAUnit/SelectedAddr4.BLIF DAUnit/SelectedAddr3.BLIF \
+DAUnit/SelectedAddr2.BLIF DAUnit/SelectedAddr1.BLIF DAUnit/SelectedAddr0.BLIF \
+DAUnit/IncDecOut6.X2
+01-111111 1
+10-000000 1
+11------- 0
+00------- 0
+1--1----- 0
+0--0----- 0
+1---1---- 0
+0---0---- 0
+1----1--- 0
+0----0--- 0
+1-----1-- 0
+0-----0-- 0
+1------1- 0
+0------0- 0
+1-------1 0
+0-------0 0
+.names DAUnit/SelectedAddr5.BLIF DAUnit/IncDecOut5.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr5.BLIF \
+DAUnit/SelectedAddr4.BLIF DAUnit/SelectedAddr3.BLIF DAUnit/SelectedAddr2.BLIF \
+DAUnit/SelectedAddr1.BLIF DAUnit/SelectedAddr0.BLIF DAUnit/IncDecOut5.X2
+01-11111 1
+10-00000 1
+11------ 0
+00------ 0
+1--1---- 0
+0--0---- 0
+1---1--- 0
+0---0--- 0
+1----1-- 0
+0----0-- 0
+1-----1- 0
+0-----0- 0
+1------1 0
+0------0 0
+.names DAUnit/SelectedAddr4.BLIF DAUnit/IncDecOut4.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr4.BLIF \
+DAUnit/SelectedAddr3.BLIF DAUnit/SelectedAddr2.BLIF DAUnit/SelectedAddr1.BLIF \
+DAUnit/SelectedAddr0.BLIF DAUnit/IncDecOut4.X2
+01-1111 1
+10-0000 1
+11----- 0
+00----- 0
+1--1--- 0
+0--0--- 0
+1---1-- 0
+0---0-- 0
+1----1- 0
+0----0- 0
+1-----1 0
+0-----0 0
+.names DAUnit/SelectedAddr3.BLIF DAUnit/IncDecOut3.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr3.BLIF \
+DAUnit/SelectedAddr2.BLIF DAUnit/SelectedAddr1.BLIF DAUnit/SelectedAddr0.BLIF \
+DAUnit/IncDecOut3.X2
+01-111 1
+10-000 1
+11---- 0
+00---- 0
+1--1-- 0
+0--0-- 0
+1---1- 0
+0---0- 0
+1----1 0
+0----0 0
+.names DAUnit/SelectedAddr2.BLIF DAUnit/IncDecOut2.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr2.BLIF \
+DAUnit/SelectedAddr1.BLIF DAUnit/SelectedAddr0.BLIF DAUnit/IncDecOut2.X2
+01-11 1
+10-00 1
+11--- 0
+00--- 0
+1--1- 0
+0--0- 0
+1---1 0
+0---0 0
+.names DAUnit/SelectedAddr1.BLIF DAUnit/IncDecOut1.X1
+1 1
+0 0
+.names DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit/SelectedAddr1.BLIF \
+DAUnit/SelectedAddr0.BLIF DAUnit/IncDecOut1.X2
+01-1 1
+10-0 1
+11-- 0
+00-- 0
+1--1 0
+0--0 0
+.names CUnit>IR0.BLIF DAUnit>UseOffset.BLIF DAUnit/SelectedAddr0.BLIF \
+DAUnit/AdderCarryIn1.X1
+111 1
+0-- 0
+-0- 0
+--0 0
+.names CUnit>IR0.BLIF DAUnit>Dec.BLIF DAUnit>Inc.BLIF DAUnit>PrePostAdd.BLIF \
+DAUnit>UseOffset.BLIF DAUnit/SelectedAddr0.BLIF DAUnit/AdderCarryIn1.X2
+10111- 1
+11011- 1
+0----- 0
+---0-- 0
+----0- 0
+-11--- 0
+-00--- 0
+.end

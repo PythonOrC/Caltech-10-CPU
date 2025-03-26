@@ -1,0 +1,20 @@
+JDF B
+// Created by Version 2.1 
+PROJECT Homework10
+DESIGN homework10 Normal
+DEVKIT LC4256V-75T144E
+ENTRY ABEL/Schematic
+STIMULUS ..\test\CPUFull.abv
+MODULE ..\src\alu.abl
+MODSTYLE ALU Normal
+MODULE ..\src\cpu.abl
+MODSTYLE CPU Normal
+MODULE ..\src\dau.abl
+MODSTYLE DAU Normal
+MODULE ..\src\cu.abl
+MODSTYLE CU Normal
+MODULE ..\src\pau.abl
+MODSTYLE PAU Normal
+SYNTHESIS_TOOL LSE
+SIMULATOR_TOOL ModelSim
+TOPMODULE CPU

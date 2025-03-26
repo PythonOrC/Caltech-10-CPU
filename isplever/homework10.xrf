@@ -1,0 +1,152 @@
+Signal Name Cross Reference File
+
+ispLEVER Classic 2.1.00.02.49.20
+
+Design 'homework10' created Thu Mar 20 13:47:17 2025
+
+Title:  Caltech10 CPU
+
+ LEGEND:  '>'  Functional Block Port Separator
+          '/'  Hierarchy Path Separator
+          '@'  Automatically Generated Node
+
+
+Short Name                              Hierarchical Name
+----------                              -----------------
+J0_ALUAddShift                       	CUnit>ALUAddShift
+J0_ALUAddSub                         	CUnit>ALUAddSub
+J0_ALUCVUpdate                       	CUnit>ALUCVUpdate
+J0_ALUF0                             	CUnit>ALUF0
+J0_ALUF1                             	CUnit>ALUF1
+J0_ALUF2                             	CUnit>ALUF2
+J0_ALUF3                             	CUnit>ALUF3
+J0_ALUHighSR0                        	CUnit>ALUHighSR0
+J0_ALUHighSR1                        	CUnit>ALUHighSR1
+J0_ALUHighSR2                        	CUnit>ALUHighSR2
+J0_ALUHold                           	CUnit>ALUHold
+J0_ALUInvCarry                       	CUnit>ALUInvCarry
+J0_ALUMidSR                          	CUnit>ALUMidSR
+J0_ALUPopF                           	CUnit>ALUPopF
+J0_ALUSZUpdate                       	CUnit>ALUSZUpdate
+J0_ALUZeroAcc                        	CUnit>ALUZeroAcc
+J0_CUALUInDataSel0                   	CUnit>CUALUInDataSel0
+J0_CUALUInDataSel1                   	CUnit>CUALUInDataSel1
+J0_CUDataDBSel0                      	CUnit>CUDataDBSel0
+J0_CUDataDBSel1                      	CUnit>CUDataDBSel1
+J0_IR0                               	CUnit>IR0
+J0_IR1                               	CUnit>IR1
+J0_IR10                              	CUnit>IR10
+J0_IR11                              	CUnit>IR11
+J0_IR12                              	CUnit>IR12
+J0_IR13                              	CUnit>IR13
+J0_IR14                              	CUnit>IR14
+J0_IR15                              	CUnit>IR15
+J0_IR2                               	CUnit>IR2
+J0_IR3                               	CUnit>IR3
+J0_IR4                               	CUnit>IR4
+J0_IR5                               	CUnit>IR5
+J0_IR6                               	CUnit>IR6
+J0_IR7                               	CUnit>IR7
+J0_IR8                               	CUnit>IR8
+J0_IR9                               	CUnit>IR9
+J0_PAUSel0                           	CUnit>PAUSel0
+J0_PAUSel1                           	CUnit>PAUSel1
+J0_debug                             	CUnit>debug
+J1_HoldIR                            	CUnit/HoldIR
+J1_StateBit0                         	CUnit/StateBit0
+J1_StateBit1                         	CUnit/StateBit1
+J1_StateBit2                         	CUnit/StateBit2
+P0_Load                              	PAUnit>Load
+P0_Offset0                           	PAUnit>Offset0
+P0_Offset1                           	PAUnit>Offset1
+P0_Offset2                           	PAUnit>Offset2
+P0_Offset3                           	PAUnit>Offset3
+P0_Offset4                           	PAUnit>Offset4
+P0_Offset7                           	PAUnit>Offset7
+P0_Sel2                              	PAUnit>Sel2
+P1_AddElement0                       	PAUnit/AddElement0
+P1_AddElement1                       	PAUnit/AddElement1
+P1_AddElement10                      	PAUnit/AddElement10
+P1_AddElement11                      	PAUnit/AddElement11
+P1_AddElement12                      	PAUnit/AddElement12
+P1_AddElement2                       	PAUnit/AddElement2
+P1_AddElement3                       	PAUnit/AddElement3
+P1_AddElement4                       	PAUnit/AddElement4
+P1_AddElement5                       	PAUnit/AddElement5
+P1_AddElement6                       	PAUnit/AddElement6
+P1_AddElement7                       	PAUnit/AddElement7
+P1_AddElement8                       	PAUnit/AddElement8
+P1_AddElement9                       	PAUnit/AddElement9
+P1_Carry10                           	PAUnit/Carry10
+P1_Carry11                           	PAUnit/Carry11
+P1_Carry2                            	PAUnit/Carry2
+P1_Carry3                            	PAUnit/Carry3
+P1_Carry4                            	PAUnit/Carry4
+P1_Carry5                            	PAUnit/Carry5
+P1_Carry6                            	PAUnit/Carry6
+P1_Carry7                            	PAUnit/Carry7
+P1_Carry8                            	PAUnit/Carry8
+P1_Carry9                            	PAUnit/Carry9
+V0_Dec                               	DAUnit>Dec
+V0_Inc                               	DAUnit>Inc
+V0_InputSel0                         	DAUnit>InputSel0
+V0_InputSel1                         	DAUnit>InputSel1
+V0_PrePostAdd                        	DAUnit>PrePostAdd
+V0_UpdateS                           	DAUnit>UpdateS
+V0_UpdateX                           	DAUnit>UpdateX
+V0_UseOffset                         	DAUnit>UseOffset
+V1_AdderCarryIn1                     	DAUnit/AdderCarryIn1
+V1_AdderCarryIn2                     	DAUnit/AdderCarryIn2
+V1_AdderCarryIn3                     	DAUnit/AdderCarryIn3
+V1_AdderCarryIn4                     	DAUnit/AdderCarryIn4
+V1_AdderCarryIn5                     	DAUnit/AdderCarryIn5
+V1_AdderCarryIn6                     	DAUnit/AdderCarryIn6
+V1_AdderCarryIn7                     	DAUnit/AdderCarryIn7
+V1_IncDecOut1                        	DAUnit/IncDecOut1
+V1_IncDecOut2                        	DAUnit/IncDecOut2
+V1_IncDecOut3                        	DAUnit/IncDecOut3
+V1_IncDecOut4                        	DAUnit/IncDecOut4
+V1_IncDecOut5                        	DAUnit/IncDecOut5
+V1_IncDecOut6                        	DAUnit/IncDecOut6
+V1_IncDecOut7                        	DAUnit/IncDecOut7
+V1_SelectedAddr0                     	DAUnit/SelectedAddr0
+V1_SelectedAddr1                     	DAUnit/SelectedAddr1
+V1_SelectedAddr2                     	DAUnit/SelectedAddr2
+V1_SelectedAddr3                     	DAUnit/SelectedAddr3
+V1_SelectedAddr4                     	DAUnit/SelectedAddr4
+V1_SelectedAddr5                     	DAUnit/SelectedAddr5
+V1_SelectedAddr6                     	DAUnit/SelectedAddr6
+V1_SelectedAddr7                     	DAUnit/SelectedAddr7
+X0_Data0                             	ALUnit>Data0
+X0_Data1                             	ALUnit>Data1
+X0_Data2                             	ALUnit>Data2
+X0_Data3                             	ALUnit>Data3
+X0_Data4                             	ALUnit>Data4
+X0_Data5                             	ALUnit>Data5
+X0_Data6                             	ALUnit>Data6
+X0_Data7                             	ALUnit>Data7
+X1_AccOut1                           	ALUnit/AccOut1
+X1_AccOut2                           	ALUnit/AccOut2
+X1_AccOut3                           	ALUnit/AccOut3
+X1_AccOut4                           	ALUnit/AccOut4
+X1_AccOut5                           	ALUnit/AccOut5
+X1_AccOut6                           	ALUnit/AccOut6
+X1_AccOut7                           	ALUnit/AccOut7
+X1_CarryIn0                          	ALUnit/CarryIn0
+X1_CarryIn1                          	ALUnit/CarryIn1
+X1_CarryIn2                          	ALUnit/CarryIn2
+X1_CarryIn3                          	ALUnit/CarryIn3
+X1_CarryIn4                          	ALUnit/CarryIn4
+X1_CarryIn5                          	ALUnit/CarryIn5
+X1_CarryIn6                          	ALUnit/CarryIn6
+X1_CarryIn7                          	ALUnit/CarryIn7
+X1_CarryIn8                          	ALUnit/CarryIn8
+X1_Fout0                             	ALUnit/Fout0
+X1_Fout1                             	ALUnit/Fout1
+X1_Fout2                             	ALUnit/Fout2
+X1_Fout3                             	ALUnit/Fout3
+X1_Fout4                             	ALUnit/Fout4
+X1_Fout5                             	ALUnit/Fout5
+X1_Fout6                             	ALUnit/Fout6
+X1_Fout7                             	ALUnit/Fout7
+X1_ShiftRot0                         	ALUnit/ShiftRot0

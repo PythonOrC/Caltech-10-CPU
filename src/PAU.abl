@@ -1,0 +1,106 @@
+MODULE PAU
+TITLE 'Program Memory Access Unit'
+
+" Description: This module is the Program Access Unit for the Calech 10 CPU. 
+"              It is responsible for managing the program counter and the
+"              program memory access. The modules has a total of 27 inputs and
+"              26 outputs.
+"
+" Inputs:       Offset[7..0]     - 8 bits of data or offset input
+"               Direct[12..0]    - 13 bits of address or data input
+"               Load             - active high load signal
+"               Sel[2..0]        - 3 bits of control input
+"               Reset            - system reset
+"               Clock            - system clock
+"
+" Outputs:      ProgAddr[12..0]  - 13 bits of program address output
+"               PC[12..0]        - 13 bits of program counter output
+
+
+" Revision History:
+
+" 02/22/24   Ethan Hu     implemented the Program Access Unit
+
+
+
+
+" interface declarations
+
+PAU INTERFACE  (Offset7..Offset0, Direct12..Direct0,
+                          Load, Sel0..Sel2, Reset, Clock
+                          -> ProgAddr12..ProgAddr0, PC12..PC0);
+
+" Pin/Signal declarations
+
+" Inputs
+
+Offset7..Offset0             pin;  " 8-bit data/offset input
+Direct12..Direct0            pin;  " 13-bit address/data input
+Reset                        pin;  " system reset
+Clock                        pin;  " System clock
+
+" Control signals
+Load                         pin;  " Active High (use this for any direct loading)
+Sel0..Sel2                   pin;  " Selection pins for the mux
+
+
+" Outputs
+ProgAddr12..ProgAddr0        pin;
+PC12..PC0                    pin ISTYPE 'REG';
+
+" Intermediate signals
+
+Carry13..Carry0              node;
+AddElement12..AddElement0    node;  " The second operand that is added
+
+" Constants
+
+ONE  = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
+ZERO = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
+
+" Buses
+
+Direct      =  [Direct12..Direct0];	                                            " address/data
+Offset      =  [Offset7..Offset0];                                              " data/offset
+PC          =  [PC12..PC0];                                                     " program counter
+ProgAddr    =  [ProgAddr12..ProgAddr0];                                         " program address
+Carry       =  [Carry13..Carry0];                                               " carry, 12..0 in carry in, 13..1 is carry out
+OffsetExt   =  [Offset7, Offset7, Offset7, Offset7, Offset7, Offset7..Offset0]; " sign-extended offset
+AddElement  =  [AddElement12..AddElement0];	                                    " input for the adder
+Low         =  [PC12..PC8, Offset7..Offset0];                                   " only loading the low bits
+High        =  [Offset4..Offset0, PC7..PC0];                                    " only loading the high bits
+
+EQUATIONS
+
+"clock and reset of the PC
+
+PC.CLK = Clock;
+PC.CLR = Reset;
+
+
+" determine the source of the second input to the adder via a 5:1 Mux
+
+AddElement = (ZERO      & !Sel2 & !Sel1 & !Sel0) #  " 000 = Hold
+             (ONE       & !Sel2 & !Sel1 &  Sel0) #  " 001 = Increment
+             (OffsetExt & !Sel2 &  Sel1 & !Sel0) #  " 010 = Offset
+             (Direct    & !Sel2 &  Sel1 &  Sel0) #  " 011 = Direct
+             (Low       &  Sel2 & !Sel1 & !Sel0) #  " 100 = Load low
+             (High      &  Sel2 & !Sel1 &  Sel0);   " 101 = Load high
+
+
+" Calculate the sum of the two inputs to the adder
+
+" standard adder with an extra Load control and modified carry calculation
+
+" first carry in bit is always 0
+" the Load determines if the PC is added to the equation
+" if PC is not added, the data is directly put into PC
+" if PC is added, the data is added to current PC
+
+Carry[0]     = 0;  
+Carry[13..1] = ((PC & !Load) & AddElement) # (Carry[12..0] & ((PC & !Load) $ AddElement));
+PC          := (PC & !Load) $ AddElement $ Carry[12..0];
+
+ProgAddr = PC;
+
+END PAU

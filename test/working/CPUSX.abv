@@ -1,0 +1,249 @@
+MODULE      CPU
+TITLE      'Caltech10 CPU Test Vectors'
+
+
+" Description:  These are the test vectors for the Caltech10 CPU.  This is a
+"               Harvard architecture CPU and as such has separate program and
+"               data address and data busses.  The program bus is read only
+"               and has no control signals.  It has 13 bits of address and 16
+"               bits of data.  The data bus is read/write and has separate
+"               read and write signals along with a Memory/IO signal to
+"               indicate if memory or I/O is being accessed.  The bus has 8
+"               bits of address and 8 bits of data.  On reset the program
+"               counter is set to 0.
+"
+"               These vectors test the instructions for changing the X and S
+"               registers.  This includes the TAX, TXA, INX, DEX, TAS, TSA,
+"               INS, and DES instructions.
+"
+" Inputs:         ProgramDB[15..0]  - the 16-bit program data bus
+"                 Reset             - system reset signal
+"                 Clock             - system clock
+"
+" I/O:            DataDB[7..0]      - the 8-bit data data bus
+"
+" Outputs:        ProgramAB[12..0]  - the 13-bit program address bus
+"                 DataAB[7..0]      - the 8-bit data address bus
+"                 RD                - read signal for the data data bus
+"                 WR                - write signal for the data data bus
+"                 IO                - memory (0) or I/O (1) is being accessed
+"
+" Status Outputs: Accum[7..0]       - the 8-bit accumulator
+"                 Flags[7..0]       - the 8-bit flag register
+"                 XReg[7..0]        - the 8-bit X register
+"                 SReg[7..0]        - the 8-bit S register
+
+
+" Revision History:
+" 11/05/17   Glen George  Initial Revision
+" 02/12/18   Glen George  Updated comments
+
+
+
+" Pin/Signal Declarations
+
+" Inputs
+
+ProgramDB15..ProgramDB0	pin;	"input  16-bit instruction data bus
+Reset           	pin;	"input  system reset signal
+Clock           	pin;	"input  system clock
+
+
+" I/O
+
+DataDB7..DataDB0	pin;	"I/O  8-bit Data data bus
+
+
+" Outputs
+
+ProgramAB12..ProgramAB0	pin;	"output  the 13-bit Program address bus
+DataAB7..DataAB0	pin;	"output  the 8-bit Data address bus
+RD			pin;	"output  read signal for the Data data bus
+WR			pin;	"output  write signal for the Data data bus
+IO			pin;	"output  accessing memory (0) or I/O (1)
+
+
+" Status Outputs
+
+Accum7..Accum0		pin;	"the accumulator
+Flags7..Flags0		pin;	"the flags
+XReg7..XReg0		pin;	"the X register
+SReg7..SReg0		pin;	"the S register
+Test7..Test0		pin;
+
+
+" Busses
+
+ProgramAB  =  [ProgramAB12..ProgramAB0];"Program address bus
+ProgramDB  =  [ProgramDB15..ProgramDB0];"16-bit instruction data bus
+DataAB     =  [DataAB7..DataAB0];	"Data address bus
+DataDB     =  [DataDB7..DataDB0];	"Data data bus
+Accum      =  [Accum7..Accum0];		"the accumulator
+Flags      =  [Flags7..Flags0];		"flags from the ALU
+XReg       =  [XReg7..XReg0];		"X register
+SReg       =  [SReg7..SReg0];		"S register
+
+
+
+" Test Vectors
+
+" try some instructions to test the design
+
+TEST_VECTORS ( [ Reset, Clock, ProgramDB, DataDB ] ->
+               [ ProgramAB, DataAB, RD, WR, IO, DataDB ] )
+
+" ; reset and test S and X register instructions
+
+[ 1, 0, ^H1F80,  .Z. ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " reset CPU
+[ 1, 1, ^H1F80,  .Z. ] -> [    .X.,  .X., .X., .X., .X.,  .X. ];
+[ 1, 0, ^H1F80,  .Z. ] -> [    .X.,  .X.,  0 ,  0 , .X.,  .X. ];
+[ 1, 1, ^H1F80,  .Z. ] -> [    .X.,  .X.,  0 ,  0 , .X.,  .X. ];
+[ 1, 0, ^H1F80,  .Z. ] -> [ ^H0000,  .X.,  0 ,  0 ,  0 ,  .X. ];
+[ 1, 1, ^H1F80,  .Z. ] -> [ ^H0000,  .X.,  0 ,  0 ,  0 ,  .X. ];
+[ 0, 0, ^HC780, ^HA1 ] -> [    .X.,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    JMP	$0780
+[ 0, 1, ^HC780, ^H95 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;jump to 0780 so know address
+[ 0, 0, ^H89FE, ^H0C ] -> [    .X.,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    LDI	$FE
+[ 0, 1, ^H89FE, ^HB4 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A
+[ 0, 0, ^H6B01, ^HAF ] -> [ ^H0780,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ADDI	$1
+[ 0, 1, ^H6B01, ^HE2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;adding 1 clears all ALU flags except S is set
+[ 0, 0, ^H0E00, ^H91 ] -> [ ^H0781,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HB2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0780,  .Z. ] -> [ ^H0782, ^HFF,  0 ,  1 ,  0 , ^H02 ]; "    TAX
+[ 0, 1, ^H0780, ^H8E ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now X is FF
+[ 0, 0, ^HB700, ^H29 ] -> [ ^H0783,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^HC2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to FF
+[ 0, 0, ^H0580,  .Z. ] -> [ ^H0784, ^HFF,  0 ,  1 ,  0 , ^HFF ]; "    INX
+[ 0, 1, ^H0580, ^HA2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment X twice
+[ 0, 0, ^H0580, ^H2D ] -> [ ^H0785,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    INX
+[ 0, 1, ^H0580, ^HB0 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment X
+[ 0, 0, ^H0E00, ^HE1 ] -> [ ^H0786,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H29 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HB700,  .Z. ] -> [ ^H0787, ^HFE,  0 ,  1 ,  0 , ^H02 ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^H5A ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 01
+[ 0, 0, ^H8940,  .Z. ] -> [ ^H0788, ^H01,  0 ,  1 ,  0 , ^HFF ]; "    LDI	$40
+[ 0, 1, ^H8940, ^HE0 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A
+[ 0, 0, ^H6B0F, ^HC9 ] -> [ ^H0789,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ADDI	$F
+[ 0, 1, ^H6B0F, ^HBE ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;add clears all ALU flags
+[ 0, 0, ^H0E00, ^H82 ] -> [ ^H078A,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H31 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0780,  .Z. ] -> [ ^H078B, ^HFD,  0 ,  1 ,  0 , ^H00 ]; "    TAX
+[ 0, 1, ^H0780, ^HC8 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now X is 4F
+[ 0, 0, ^HB700, ^H32 ] -> [ ^H078C,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^HAA ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 4F
+[ 0, 0, ^H0580,  .Z. ] -> [ ^H078D, ^H4F,  0 ,  1 ,  0 , ^H4F ]; "    INX
+[ 0, 1, ^H0580, ^H52 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment X
+[ 0, 0, ^H0E00, ^HB9 ] -> [ ^H078E,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H83 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HB700,  .Z. ] -> [ ^H078F, ^HFC,  0 ,  1 ,  0 , ^H00 ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^HAE ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 50
+[ 0, 0, ^H8920,  .Z. ] -> [ ^H0790, ^H50,  0 ,  1 ,  0 , ^H4F ]; "    LDI	$20
+[ 0, 1, ^H8920, ^H9D ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A (20)
+[ 0, 0, ^H0E00, ^H66 ] -> [ ^H0791,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^HDD ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0780,  .Z. ] -> [ ^H0792, ^HFB,  0 ,  1 ,  0 , ^H00 ]; "    TAX
+[ 0, 1, ^H0780, ^HBA ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now X is 20
+[ 0, 0, ^HB700, ^HBB ] -> [ ^H0793,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^H1C ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 20
+[ 0, 0, ^H0D80,  .Z. ] -> [ ^H0794, ^H20,  0 ,  1 ,  0 , ^H20 ]; "    DEX
+[ 0, 1, ^H0D80, ^HF2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement X
+[ 0, 0, ^H0E00, ^H06 ] -> [ ^H0795,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H94 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HB700,  .Z. ] -> [ ^H0796, ^HFA,  0 ,  1 ,  0 , ^H00 ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^H90 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 1F
+[ 0, 0, ^H8901,  .Z. ] -> [ ^H0797, ^H1F,  0 ,  1 ,  0 , ^H20 ]; "    LDI	$1
+[ 0, 1, ^H8901, ^H7C ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A (1)
+[ 0, 0, ^H0E00, ^HD6 ] -> [ ^H0798,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H7A ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0780,  .Z. ] -> [ ^H0799, ^HF9,  0 ,  1 ,  0 , ^H00 ]; "    TAX
+[ 0, 1, ^H0780, ^HF2 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now X is 01
+[ 0, 0, ^HB700, ^H0F ] -> [ ^H079A,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^HB1 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 01
+[ 0, 0, ^H0D80,  .Z. ] -> [ ^H079B, ^H01,  0 ,  1 ,  0 , ^H01 ]; "    DEX
+[ 0, 1, ^H0D80, ^H96 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement X twice
+[ 0, 0, ^H0D80, ^H50 ] -> [ ^H079C,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    DEX
+[ 0, 1, ^H0D80, ^H24 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement X
+[ 0, 0, ^H0E00, ^HE0 ] -> [ ^H079D,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H92 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HB700,  .Z. ] -> [ ^H079E, ^HF8,  0 ,  1 ,  0 , ^H00 ]; "    ST	X, 0
+[ 0, 1, ^HB700, ^H2D ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to FF
+[ 0, 0, ^H6701,  .Z. ] -> [ ^H079F, ^HFF,  0 ,  1 ,  0 , ^H01 ]; "    TXA
+[ 0, 1, ^H6701, ^H63 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now get FF into A
+[ 0, 0, ^H0E00, ^H2B ] -> [ ^H07A0,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H87 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HA000,  .Z. ] -> [ ^H07A1, ^HF7,  0 ,  1 ,  0 , ^H00 ]; "    STD	$00
+[ 0, 1, ^HA000, ^H61 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that FF is written to 00
+[ 0, 0, ^H89FE,  .Z. ] -> [ ^H07A2, ^H00,  0 ,  1 ,  0 , ^HFF ]; "    LDI	$FE
+[ 0, 1, ^H89FE, ^H30 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A
+[ 0, 0, ^H6B01, ^HCF ] -> [ ^H07A3,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ADDI	$1
+[ 0, 1, ^H6B01, ^H2A ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;adding 1 clears all ALU flags except S is set
+[ 0, 0, ^H0E00, ^H33 ] -> [ ^H07A4,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H7A ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0750,  .Z. ] -> [ ^H07A5, ^HF6,  0 ,  1 ,  0 , ^H02 ]; "    TAS
+[ 0, 1, ^H0750, ^HC3 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now S is FF
+[ 0, 0, ^HB300, ^H33 ] -> [ ^H07A6,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^HB6 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to FF
+[ 0, 0, ^H0640,  .Z. ] -> [ ^H07A7, ^HFF,  0 ,  1 ,  0 , ^HFF ]; "    INS
+[ 0, 1, ^H0640, ^HC0 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment S twice
+[ 0, 0, ^H0640, ^H2D ] -> [ ^H07A8,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    INS
+[ 0, 1, ^H0640, ^H0E ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment S
+[ 0, 0, ^H0E00, ^H61 ] -> [ ^H07A9,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H64 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HB300,  .Z. ] -> [ ^H07AA, ^H00,  0 ,  1 ,  0 , ^H02 ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^H1F ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 00
+[ 0, 0, ^H8950,  .Z. ] -> [ ^H07AB, ^H00,  0 ,  1 ,  0 , ^HFF ]; "    LDI	$50
+[ 0, 1, ^H8950, ^HC6 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A
+[ 0, 0, ^H6B0F, ^HF2 ] -> [ ^H07AC,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ADDI	$F
+[ 0, 1, ^H6B0F, ^H34 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;add clears all ALU flags
+[ 0, 0, ^H0E00, ^H96 ] -> [ ^H07AD,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H2E ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags (write to FF)
+[ 0, 0, ^H0750,  .Z. ] -> [ ^H07AE, ^HFF,  0 ,  1 ,  0 , ^H00 ]; "    TAS
+[ 0, 1, ^H0750, ^H84 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now S is 5F
+[ 0, 0, ^HB300, ^H36 ] -> [ ^H07AF,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^HB5 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 5F
+[ 0, 0, ^H0640,  .Z. ] -> [ ^H07B0, ^H5F,  0 ,  1 ,  0 , ^H5F ]; "    INS
+[ 0, 1, ^H0640, ^H51 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;increment S
+[ 0, 0, ^HB300, ^HEF ] -> [ ^H07B1,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^HB4 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 60
+[ 0, 0, ^H0E00,  .Z. ] -> [ ^H07B2, ^H60,  0 ,  1 ,  0 , ^H5F ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H3E ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^H89A0,  .Z. ] -> [ ^H07B3, ^H5F,  0 ,  1 ,  0 , ^H00 ]; "    LDI	$A0
+[ 0, 1, ^H89A0, ^H1C ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A (A0)
+[ 0, 0, ^H0E00, ^H61 ] -> [ ^H07B4,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H89 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0750,  .Z. ] -> [ ^H07B5, ^H5E,  0 ,  1 ,  0 , ^H00 ]; "    TAS
+[ 0, 1, ^H0750, ^H52 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now S is A0
+[ 0, 0, ^HB300, ^H4B ] -> [ ^H07B6,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^H3A ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to A0
+[ 0, 0, ^H0E40,  .Z. ] -> [ ^H07B7, ^HA0,  0 ,  1 ,  0 , ^HA0 ]; "    DES
+[ 0, 1, ^H0E40, ^HAA ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement S
+[ 0, 0, ^HB300, ^H69 ] -> [ ^H07B8,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^H91 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 9F
+[ 0, 0, ^H0E00,  .Z. ] -> [ ^H07B9, ^H9F,  0 ,  1 ,  0 , ^HA0 ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H2C ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^H8901,  .Z. ] -> [ ^H07BA, ^H9E,  0 ,  1 ,  0 , ^H00 ]; "    LDI	$1
+[ 0, 1, ^H8901, ^HF7 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;get a known value in A (1)
+[ 0, 0, ^H0E00, ^H94 ] -> [ ^H07BB,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H0B ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags
+[ 0, 0, ^H0750,  .Z. ] -> [ ^H07BC, ^H9D,  0 ,  1 ,  0 , ^H00 ]; "    TAS
+[ 0, 1, ^H0750, ^H93 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now S is 01
+[ 0, 0, ^HB300, ^H44 ] -> [ ^H07BD,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^HF3 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to 01
+[ 0, 0, ^H0E40,  .Z. ] -> [ ^H07BE, ^H01,  0 ,  1 ,  0 , ^H01 ]; "    DES
+[ 0, 1, ^H0E40, ^HE7 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement S twice
+[ 0, 0, ^H0E40, ^H12 ] -> [ ^H07BF,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    DES
+[ 0, 1, ^H0E40, ^HA3 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;decrement S
+[ 0, 0, ^HB300, ^H72 ] -> [ ^H07C0,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    ST	S, 0
+[ 0, 1, ^HB300, ^H50 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that write to FF
+[ 0, 0, ^H0E00,  .Z. ] -> [ ^H07C1, ^HFF,  0 ,  1 ,  0 , ^H01 ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H70 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^H6700,  .Z. ] -> [ ^H07C2, ^HFE,  0 ,  1 ,  0 , ^H00 ]; "    TSA
+[ 0, 1, ^H6700, ^HF5 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;now get FE into A
+[ 0, 0, ^H0E00, ^HC8 ] -> [ ^H07C3,  .X.,  0 ,  0 ,  0 ,  .X. ]; "    PUSHF
+[ 0, 1, ^H0E00, ^H9D ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check flags didn't change
+[ 0, 0, ^HA080,  .Z. ] -> [ ^H07C4, ^HFD,  0 ,  1 ,  0 , ^H00 ]; "    STD	$80
+[ 0, 1, ^HA080, ^HB1 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;check that FE is written to 80
+[ 0, 0, ^H1F80,  .Z. ] -> [ ^H07C5, ^H80,  0 ,  1 ,  0 , ^HFE ]; "    NOP
+[ 0, 1, ^H1F80, ^HB0 ] -> [    .X.,  .X., .X., .X., .X.,  .X. ]; " ;NOP to flush out the last write
+
+
+END  CPU

@@ -1,0 +1,10 @@
+Prefit Logic Optimizer (May 31 2012)  Thu Mar 20 13:47:48 2025
+
+D:\ispLEVER_Classic2_1\ispcpld\bin\prefit.exe -blif -inp homework10.bl4 -out homework10.bl5 -err automake.err -log homework10.log -mod CPU @homework10.l0 -gui -sc 
+<Note> F34000: J0_debug is removed
+<Note> F34000: buried node com_0 generated
+Number of pins (IO)    :    83
+Number of outputs (MC) :   201
+Number of registers    :    64
+Number of logic pterms :   841
+D:\ispLEVER_Classic2_1\ispcpld\bin\prefit.exe complete - Time 0 seconds

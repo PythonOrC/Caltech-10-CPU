@@ -1,0 +1,411 @@
+#$ TOOL ispLEVER Classic 2.1.00.02.49.20
+#$ DATE Thu Mar 20 13:47:45 2025
+#$ TITLE Data Memory Access Unit
+#$ MODULE dau
+#$ JEDECFILE dau
+#$ PINS 50 Accum7 Accum6 Accum5 Accum4 Accum3 Accum2 Accum1 Accum0 Offset7 Offset6 Offset5 Offset4 Offset3 Offset2 Offset1 Offset0 UpdateX UpdateS InputSel1 \
+#  InputSel0 Inc Dec PrePostAdd UseOffset Reset Clock DataAddr7 DataAddr6 DataAddr5 DataAddr4 DataAddr3 DataAddr2 DataAddr1 DataAddr0 XReg7 XReg6 XReg5 XReg4 \
+#  XReg3 XReg2 XReg1 XReg0 SReg7 SReg6 SReg5 SReg4 SReg3 SReg2 SReg1 SReg0
+#$ NODES 56 SelectedAddr7 SelectedAddr6 SelectedAddr5 SelectedAddr4 SelectedAddr3 SelectedAddr2 SelectedAddr1 SelectedAddr0 IncDecCarryIn8 \
+#  IncDecCarryIn7 IncDecCarryIn6 IncDecCarryIn5 IncDecCarryIn4 IncDecCarryIn3 IncDecCarryIn2 IncDecCarryIn1 IncDecOut7 IncDecOut6 IncDecOut5 IncDecOut4 \
+#  IncDecOut3 IncDecOut2 IncDecOut1 IncDecOut0 AdderCarryIn8 AdderCarryIn7 AdderCarryIn6 AdderCarryIn5 AdderCarryIn4 AdderCarryIn3 AdderCarryIn2 \
+#  AdderCarryIn1 AdderInOffset7 AdderInOffset6 AdderInOffset5 AdderInOffset4 AdderInOffset3 AdderInOffset2 AdderInOffset1 AdderInOffset0 \
+#  AdderInIncDec7 AdderInIncDec6 AdderInIncDec5 AdderInIncDec4 AdderInIncDec3 AdderInIncDec2 AdderInIncDec1 AdderInIncDec0 IncDecIn7 IncDecIn6 \
+#  IncDecIn5 IncDecIn4 IncDecIn3 IncDecIn2 IncDecIn1 IncDecIn0
+#$ INTERFACE dau  50 Accum0'i'  Accum1'i'  Accum2'i'  Accum3'i'  Accum4'i'  Accum5'i'  Accum6'i'  Accum7'i'  Clock'i'  Dec'i'  Inc'i'  InputSel0'i'  InputSel1'i'  Offset0'i'  Offset1'i'  Offset2'i'  Offset3'i'  Offset4'i'  Offset5'i'  \
+#  Offset6'i'  Offset7'i'  PrePostAdd'i'  Reset'i'  UpdateS'i'  UpdateX'i'  UseOffset'i'  DataAddr0'o'  DataAddr1'o'  DataAddr2'o'  DataAddr3'o'  DataAddr4'o'  DataAddr5'o'  DataAddr6'o'  DataAddr7'o'  SReg0'o'  SReg1'o'  \
+#  SReg2'o'  SReg3'o'  SReg4'o'  SReg5'o'  SReg6'o'  SReg7'o'  XReg0'o'  XReg1'o'  XReg2'o'  XReg3'o'  XReg4'o'  XReg5'o'  XReg6'o'  XReg7'o' 
+
+.model dau
+.inputs Clock.BLIF Reset.BLIF InputSel1.BLIF InputSel0.BLIF XReg7.BLIF SReg7.BLIF \
+Accum7.BLIF XReg6.BLIF SReg6.BLIF Accum6.BLIF XReg5.BLIF SReg5.BLIF \
+Accum5.BLIF XReg4.BLIF SReg4.BLIF Accum4.BLIF XReg3.BLIF SReg3.BLIF \
+Accum3.BLIF XReg2.BLIF SReg2.BLIF Accum2.BLIF XReg1.BLIF SReg1.BLIF \
+Accum1.BLIF XReg0.BLIF SReg0.BLIF Accum0.BLIF Inc.BLIF Dec.BLIF \
+SelectedAddr7.BLIF IncDecIn7.BLIF IncDecCarryIn7.BLIF SelectedAddr6.BLIF \
+IncDecIn6.BLIF IncDecCarryIn6.BLIF SelectedAddr5.BLIF IncDecIn5.BLIF \
+IncDecCarryIn5.BLIF SelectedAddr4.BLIF IncDecIn4.BLIF IncDecCarryIn4.BLIF \
+SelectedAddr3.BLIF IncDecIn3.BLIF IncDecCarryIn3.BLIF SelectedAddr2.BLIF \
+IncDecIn2.BLIF IncDecCarryIn2.BLIF SelectedAddr1.BLIF IncDecIn1.BLIF \
+IncDecCarryIn1.BLIF SelectedAddr0.BLIF IncDecIn0.BLIF UpdateX.BLIF \
+IncDecOut7.BLIF IncDecOut6.BLIF IncDecOut5.BLIF IncDecOut4.BLIF \
+IncDecOut3.BLIF IncDecOut2.BLIF IncDecOut1.BLIF IncDecOut0.BLIF UpdateS.BLIF \
+UseOffset.BLIF Offset7.BLIF Offset6.BLIF Offset5.BLIF Offset4.BLIF \
+Offset3.BLIF Offset2.BLIF Offset1.BLIF Offset0.BLIF PrePostAdd.BLIF \
+AdderInOffset7.BLIF AdderInIncDec7.BLIF AdderCarryIn7.BLIF AdderInOffset6.BLIF \
+AdderInIncDec6.BLIF AdderCarryIn6.BLIF AdderInOffset5.BLIF AdderInIncDec5.BLIF \
+AdderCarryIn5.BLIF AdderInOffset4.BLIF AdderInIncDec4.BLIF AdderCarryIn4.BLIF \
+AdderInOffset3.BLIF AdderInIncDec3.BLIF AdderCarryIn3.BLIF AdderInOffset2.BLIF \
+AdderInIncDec2.BLIF AdderCarryIn2.BLIF AdderInOffset1.BLIF AdderInIncDec1.BLIF \
+AdderCarryIn1.BLIF AdderInOffset0.BLIF AdderInIncDec0.BLIF
+.outputs DataAddr7 DataAddr6 DataAddr5 DataAddr4 DataAddr3 DataAddr2 DataAddr1 \
+DataAddr0 SelectedAddr7 SelectedAddr6 SelectedAddr5 SelectedAddr4 \
+SelectedAddr3 SelectedAddr2 SelectedAddr1 SelectedAddr0 IncDecCarryIn8 \
+IncDecCarryIn7 IncDecCarryIn6 IncDecCarryIn5 IncDecCarryIn4 IncDecCarryIn3 \
+IncDecCarryIn2 IncDecCarryIn1 IncDecOut7 IncDecOut6 IncDecOut5 IncDecOut4 \
+IncDecOut3 IncDecOut2 IncDecOut1 IncDecOut0 AdderCarryIn8 AdderCarryIn7 \
+AdderCarryIn6 AdderCarryIn5 AdderCarryIn4 AdderCarryIn3 AdderCarryIn2 \
+AdderCarryIn1 AdderInOffset7 AdderInOffset6 AdderInOffset5 AdderInOffset4 \
+AdderInOffset3 AdderInOffset2 AdderInOffset1 AdderInOffset0 AdderInIncDec7 \
+AdderInIncDec6 AdderInIncDec5 AdderInIncDec4 AdderInIncDec3 AdderInIncDec2 \
+AdderInIncDec1 AdderInIncDec0 IncDecIn7 IncDecIn6 IncDecIn5 IncDecIn4 \
+IncDecIn3 IncDecIn2 IncDecIn1 IncDecIn0 XReg7.C XReg6.C XReg5.C XReg4.C \
+XReg3.C XReg2.C XReg1.C XReg0.C XReg7.CLR XReg6.CLR XReg5.CLR XReg4.CLR \
+XReg3.CLR XReg2.CLR XReg1.CLR XReg0.CLR SReg7.C SReg6.C SReg5.C SReg4.C \
+SReg3.C SReg2.C SReg1.C SReg0.C SReg7.CLR SReg6.CLR SReg5.CLR SReg4.CLR \
+SReg3.CLR SReg2.CLR SReg1.CLR SReg0.CLR XReg7.REG XReg6.REG XReg5.REG \
+XReg4.REG XReg3.REG XReg2.REG XReg1.REG XReg0.REG SReg7.REG SReg6.REG \
+SReg5.REG SReg4.REG SReg3.REG SReg2.REG SReg1.REG SReg0.REG
+.names AdderInOffset7.BLIF AdderInIncDec7.BLIF AdderCarryIn7.BLIF DataAddr7
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset6.BLIF AdderInIncDec6.BLIF AdderCarryIn6.BLIF DataAddr6
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset5.BLIF AdderInIncDec5.BLIF AdderCarryIn5.BLIF DataAddr5
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset4.BLIF AdderInIncDec4.BLIF AdderCarryIn4.BLIF DataAddr4
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset3.BLIF AdderInIncDec3.BLIF AdderCarryIn3.BLIF DataAddr3
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset2.BLIF AdderInIncDec2.BLIF AdderCarryIn2.BLIF DataAddr2
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset1.BLIF AdderInIncDec1.BLIF AdderCarryIn1.BLIF DataAddr1
+111 1
+001 1
+010 1
+100 1
+.names AdderInOffset0.BLIF AdderInIncDec0.BLIF DataAddr0
+01 1
+10 1
+.names InputSel1.BLIF InputSel0.BLIF XReg7.BLIF SReg7.BLIF Accum7.BLIF \
+SelectedAddr7
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg6.BLIF SReg6.BLIF Accum6.BLIF \
+SelectedAddr6
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg5.BLIF SReg5.BLIF Accum5.BLIF \
+SelectedAddr5
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg4.BLIF SReg4.BLIF Accum4.BLIF \
+SelectedAddr4
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg3.BLIF SReg3.BLIF Accum3.BLIF \
+SelectedAddr3
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg2.BLIF SReg2.BLIF Accum2.BLIF \
+SelectedAddr2
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg1.BLIF SReg1.BLIF Accum1.BLIF \
+SelectedAddr1
+011-- 1
+10-1- 1
+11--1 1
+.names InputSel1.BLIF InputSel0.BLIF XReg0.BLIF SReg0.BLIF Accum0.BLIF \
+SelectedAddr0
+011-- 1
+10-1- 1
+11--1 1
+.names SelectedAddr7.BLIF IncDecIn7.BLIF IncDecCarryIn7.BLIF IncDecCarryIn8
+11- 1
+011 1
+101 1
+.names SelectedAddr6.BLIF IncDecIn6.BLIF IncDecCarryIn6.BLIF IncDecCarryIn7
+11- 1
+011 1
+101 1
+.names SelectedAddr5.BLIF IncDecIn5.BLIF IncDecCarryIn5.BLIF IncDecCarryIn6
+11- 1
+011 1
+101 1
+.names SelectedAddr4.BLIF IncDecIn4.BLIF IncDecCarryIn4.BLIF IncDecCarryIn5
+11- 1
+011 1
+101 1
+.names SelectedAddr3.BLIF IncDecIn3.BLIF IncDecCarryIn3.BLIF IncDecCarryIn4
+11- 1
+011 1
+101 1
+.names SelectedAddr2.BLIF IncDecIn2.BLIF IncDecCarryIn2.BLIF IncDecCarryIn3
+11- 1
+011 1
+101 1
+.names SelectedAddr1.BLIF IncDecIn1.BLIF IncDecCarryIn1.BLIF IncDecCarryIn2
+11- 1
+011 1
+101 1
+.names SelectedAddr0.BLIF IncDecIn0.BLIF IncDecCarryIn1
+11 1
+.names SelectedAddr7.BLIF IncDecIn7.BLIF IncDecCarryIn7.BLIF IncDecOut7
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr6.BLIF IncDecIn6.BLIF IncDecCarryIn6.BLIF IncDecOut6
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr5.BLIF IncDecIn5.BLIF IncDecCarryIn5.BLIF IncDecOut5
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr4.BLIF IncDecIn4.BLIF IncDecCarryIn4.BLIF IncDecOut4
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr3.BLIF IncDecIn3.BLIF IncDecCarryIn3.BLIF IncDecOut3
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr2.BLIF IncDecIn2.BLIF IncDecCarryIn2.BLIF IncDecOut2
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr1.BLIF IncDecIn1.BLIF IncDecCarryIn1.BLIF IncDecOut1
+111 1
+001 1
+010 1
+100 1
+.names SelectedAddr0.BLIF IncDecIn0.BLIF IncDecOut0
+01 1
+10 1
+.names AdderInOffset7.BLIF AdderInIncDec7.BLIF AdderCarryIn7.BLIF \
+AdderCarryIn8
+11- 1
+011 1
+101 1
+.names AdderInOffset6.BLIF AdderInIncDec6.BLIF AdderCarryIn6.BLIF \
+AdderCarryIn7
+11- 1
+011 1
+101 1
+.names AdderInOffset5.BLIF AdderInIncDec5.BLIF AdderCarryIn5.BLIF \
+AdderCarryIn6
+11- 1
+011 1
+101 1
+.names AdderInOffset4.BLIF AdderInIncDec4.BLIF AdderCarryIn4.BLIF \
+AdderCarryIn5
+11- 1
+011 1
+101 1
+.names AdderInOffset3.BLIF AdderInIncDec3.BLIF AdderCarryIn3.BLIF \
+AdderCarryIn4
+11- 1
+011 1
+101 1
+.names AdderInOffset2.BLIF AdderInIncDec2.BLIF AdderCarryIn2.BLIF \
+AdderCarryIn3
+11- 1
+011 1
+101 1
+.names AdderInOffset1.BLIF AdderInIncDec1.BLIF AdderCarryIn1.BLIF \
+AdderCarryIn2
+11- 1
+011 1
+101 1
+.names AdderInOffset0.BLIF AdderInIncDec0.BLIF AdderCarryIn1
+11 1
+.names UseOffset.BLIF Offset7.BLIF AdderInOffset7
+11 1
+.names UseOffset.BLIF Offset6.BLIF AdderInOffset6
+11 1
+.names UseOffset.BLIF Offset5.BLIF AdderInOffset5
+11 1
+.names UseOffset.BLIF Offset4.BLIF AdderInOffset4
+11 1
+.names UseOffset.BLIF Offset3.BLIF AdderInOffset3
+11 1
+.names UseOffset.BLIF Offset2.BLIF AdderInOffset2
+11 1
+.names UseOffset.BLIF Offset1.BLIF AdderInOffset1
+11 1
+.names UseOffset.BLIF Offset0.BLIF AdderInOffset0
+11 1
+.names SelectedAddr7.BLIF IncDecOut7.BLIF PrePostAdd.BLIF AdderInIncDec7
+-11 1
+1-0 1
+.names SelectedAddr6.BLIF IncDecOut6.BLIF PrePostAdd.BLIF AdderInIncDec6
+-11 1
+1-0 1
+.names SelectedAddr5.BLIF IncDecOut5.BLIF PrePostAdd.BLIF AdderInIncDec5
+-11 1
+1-0 1
+.names SelectedAddr4.BLIF IncDecOut4.BLIF PrePostAdd.BLIF AdderInIncDec4
+-11 1
+1-0 1
+.names SelectedAddr3.BLIF IncDecOut3.BLIF PrePostAdd.BLIF AdderInIncDec3
+-11 1
+1-0 1
+.names SelectedAddr2.BLIF IncDecOut2.BLIF PrePostAdd.BLIF AdderInIncDec2
+-11 1
+1-0 1
+.names SelectedAddr1.BLIF IncDecOut1.BLIF PrePostAdd.BLIF AdderInIncDec1
+-11 1
+1-0 1
+.names SelectedAddr0.BLIF IncDecOut0.BLIF PrePostAdd.BLIF AdderInIncDec0
+-11 1
+1-0 1
+.names Inc.BLIF Dec.BLIF IncDecIn7
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn6
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn5
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn4
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn3
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn2
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn1
+01 1
+.names Inc.BLIF Dec.BLIF IncDecIn0
+01 1
+10 1
+.names Clock.BLIF XReg7.C
+1 1
+.names Clock.BLIF XReg6.C
+1 1
+.names Clock.BLIF XReg5.C
+1 1
+.names Clock.BLIF XReg4.C
+1 1
+.names Clock.BLIF XReg3.C
+1 1
+.names Clock.BLIF XReg2.C
+1 1
+.names Clock.BLIF XReg1.C
+1 1
+.names Clock.BLIF XReg0.C
+1 1
+.names Reset.BLIF XReg7.CLR
+1 1
+.names Reset.BLIF XReg6.CLR
+1 1
+.names Reset.BLIF XReg5.CLR
+1 1
+.names Reset.BLIF XReg4.CLR
+1 1
+.names Reset.BLIF XReg3.CLR
+1 1
+.names Reset.BLIF XReg2.CLR
+1 1
+.names Reset.BLIF XReg1.CLR
+1 1
+.names Reset.BLIF XReg0.CLR
+1 1
+.names Clock.BLIF SReg7.C
+1 1
+.names Clock.BLIF SReg6.C
+1 1
+.names Clock.BLIF SReg5.C
+1 1
+.names Clock.BLIF SReg4.C
+1 1
+.names Clock.BLIF SReg3.C
+1 1
+.names Clock.BLIF SReg2.C
+1 1
+.names Clock.BLIF SReg1.C
+1 1
+.names Clock.BLIF SReg0.C
+1 1
+.names Reset.BLIF SReg7.CLR
+1 1
+.names Reset.BLIF SReg6.CLR
+1 1
+.names Reset.BLIF SReg5.CLR
+1 1
+.names Reset.BLIF SReg4.CLR
+1 1
+.names Reset.BLIF SReg3.CLR
+1 1
+.names Reset.BLIF SReg2.CLR
+1 1
+.names Reset.BLIF SReg1.CLR
+1 1
+.names Reset.BLIF SReg0.CLR
+1 1
+.names XReg7.BLIF UpdateX.BLIF IncDecOut7.BLIF XReg7.REG
+10- 1
+-11 1
+.names XReg6.BLIF UpdateX.BLIF IncDecOut6.BLIF XReg6.REG
+10- 1
+-11 1
+.names XReg5.BLIF UpdateX.BLIF IncDecOut5.BLIF XReg5.REG
+10- 1
+-11 1
+.names XReg4.BLIF UpdateX.BLIF IncDecOut4.BLIF XReg4.REG
+10- 1
+-11 1
+.names XReg3.BLIF UpdateX.BLIF IncDecOut3.BLIF XReg3.REG
+10- 1
+-11 1
+.names XReg2.BLIF UpdateX.BLIF IncDecOut2.BLIF XReg2.REG
+10- 1
+-11 1
+.names XReg1.BLIF UpdateX.BLIF IncDecOut1.BLIF XReg1.REG
+10- 1
+-11 1
+.names XReg0.BLIF UpdateX.BLIF IncDecOut0.BLIF XReg0.REG
+10- 1
+-11 1
+.names SReg7.BLIF IncDecOut7.BLIF UpdateS.BLIF SReg7.REG
+-11 1
+1-0 1
+.names SReg6.BLIF IncDecOut6.BLIF UpdateS.BLIF SReg6.REG
+-11 1
+1-0 1
+.names SReg5.BLIF IncDecOut5.BLIF UpdateS.BLIF SReg5.REG
+-11 1
+1-0 1
+.names SReg4.BLIF IncDecOut4.BLIF UpdateS.BLIF SReg4.REG
+-11 1
+1-0 1
+.names SReg3.BLIF IncDecOut3.BLIF UpdateS.BLIF SReg3.REG
+-11 1
+1-0 1
+.names SReg2.BLIF IncDecOut2.BLIF UpdateS.BLIF SReg2.REG
+-11 1
+1-0 1
+.names SReg1.BLIF IncDecOut1.BLIF UpdateS.BLIF SReg1.REG
+-11 1
+1-0 1
+.names SReg0.BLIF IncDecOut0.BLIF UpdateS.BLIF SReg0.REG
+-11 1
+1-0 1
+.end
